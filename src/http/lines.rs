@@ -1,5 +1,8 @@
 use std::io::{Read};
 
+const CARRIAGE_RETURN: u8 = 13u8;
+const LINEFEED: u8 = 10u8;
+
 #[derive(Debug)]
 pub enum LinesError {
     ReadError(::std::io::Error)
@@ -56,7 +59,7 @@ impl<R: Read> Iterator for Lines<R> {
                 }
             }
 
-            if prev_byte == 13u8 && byte == 10u8 {
+            if prev_byte == CARRIAGE_RETURN && byte == LINEFEED {
                 buf.pop();
                 return Some(Ok(buf));
             }
