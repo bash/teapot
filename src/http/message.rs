@@ -1,7 +1,6 @@
-use std::io::{Read, BufReader};
+use std::io::Read;
 use std::convert::From;
 use std::string::FromUtf8Error;
-use std::ops::Not;
 use super::lines::{ReadLines, LinesError};
 
 #[derive(Debug)]

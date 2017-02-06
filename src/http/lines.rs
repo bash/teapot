@@ -24,20 +24,6 @@ impl<R> Lines<R> {
     }
 }
 
-impl<R> Lines<R> where R: Read {
-    fn read_byte(&mut self) -> Result<Option<u8>, LinesError> {
-        let mut bytes = [0; 1];
-        let bytes_read = self.inner.read(&mut bytes)?;
-
-        let byte = match bytes_read {
-            0 => None,
-            _ => Some(bytes[0])
-        };
-
-        Ok(byte)
-    }
-}
-
 // TODO: clean up
 impl<R: Read> Iterator for Lines<R> {
     type Item = Result<Vec<u8>, LinesError>;
@@ -72,7 +58,7 @@ impl<R: Read> Iterator for Lines<R> {
 
 pub trait ReadLines {
     fn lines(self) -> Lines<Self> where Self: Sized {
-        Lines { inner: self }
+        Lines::new(self)
     }
 }
 
@@ -85,7 +71,7 @@ mod test {
 
     #[test]
     fn test_iterator() {
-        let mut bytes = "Foo\r\nBar\r\nBaz\r\n\r\nQux".as_bytes();
+        let bytes = "Foo\r\nBar\r\nBaz\r\n\r\nQux".as_bytes();
         let mut iter = Lines::new(bytes);
 
         assert_eq!("Foo".to_string().into_bytes(), iter.next().unwrap().unwrap());
