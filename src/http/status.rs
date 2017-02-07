@@ -119,6 +119,9 @@ pub enum StatusCode {
     /// 417 Expectation Failed
     /// [RFC7231, Section 6.5.14](http://www.iana.org/go/rfc7231)
     ExpectationFailed,
+    /// 418 I'm a Teapot
+    /// [RFC7168, Section 2.3.3](https://tools.ietf.org/html/rfc7168#section-2.3.3)
+    ImATeapot,
     /// 421 Misdirected Request
     /// [RFC7540, Section 9.1.2](http://www.iana.org/go/rfc7540)
     MisdirectedRequest,
@@ -241,6 +244,7 @@ impl StatusCode {
             415 => StatusCode::UnsupportedMediaType,
             416 => StatusCode::RangeNotSatisfiable,
             417 => StatusCode::ExpectationFailed,
+            418 => StatusCode::ImATeapot,
             421 => StatusCode::MisdirectedRequest,
             422 => StatusCode::UnprocessableEntity,
             423 => StatusCode::Locked,
@@ -306,6 +310,7 @@ impl StatusCode {
             StatusCode::UnsupportedMediaType => 415,
             StatusCode::RangeNotSatisfiable => 416,
             StatusCode::ExpectationFailed => 417,
+            StatusCode::ImATeapot => 418,
             StatusCode::MisdirectedRequest => 421,
             StatusCode::UnprocessableEntity => 422,
             StatusCode::Locked => 423,
@@ -382,6 +387,7 @@ impl StatusCode {
             StatusCode::UnsupportedMediaType => Some("Unsupported Media Type"),
             StatusCode::RangeNotSatisfiable => Some("Range Not Satisfiable"),
             StatusCode::ExpectationFailed => Some("Expectation Failed"),
+            StatusCode::ImATeapot => Some("I'm a Teapot"),
             StatusCode::MisdirectedRequest => Some("Misdirected Request"),
             StatusCode::UnprocessableEntity => Some("Unprocessable Entity"),
             StatusCode::Locked => Some("Locked"),
@@ -464,6 +470,8 @@ mod test {
 
     #[test]
     fn test_registered_statuses() {
+
+
         test_status_code(StatusCode::Continue,
                          100,
                          "Continue",
@@ -601,6 +609,10 @@ mod test {
         test_status_code(StatusCode::ExpectationFailed,
                          417,
                          "Expectation Failed",
+                         StatusClass::ClientError);
+        test_status_code(StatusCode::ImATeapot,
+                         418,
+                         "I'm a Teapot",
                          StatusClass::ClientError);
         test_status_code(StatusCode::MisdirectedRequest,
                          421,
