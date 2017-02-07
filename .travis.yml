@@ -9,12 +9,12 @@ before_script:
 - pip install 'travis-cargo<0.2' --user && export PATH=$HOME/.local/bin:$PATH
 
 script:
-- travis-cargo build --verbose
-- travis-cargo test --verbose
-- travis-cargo doc --no-deps
+- cargo build --verbose
+- cargo test --verbose
+- cargo doc --no-deps
 
 after_success:
-- travis-cargo --only nightly doc-uploadg
+- travis-cargo --only nightly doc-upload
 
 env:
   global:
