@@ -61,6 +61,16 @@ impl<'a> RawHeader<'a> {
     }
 }
 
+/// # Examples
+///
+/// ```
+/// use teapot::http::headers::{Headers, DntHeader, Dnt};
+///
+/// let headers = Headers::new();
+/// let dnt : DntHeader = headers.get().unwrap();
+///
+/// assert_eq!(Dnt::Unspecified, dnt.value());
+/// ```
 pub struct Headers<'a> {
     headers: BTreeSet<RawHeader<'a>>
 }
@@ -91,7 +101,7 @@ impl<'a> Headers<'a> {
     }
 }
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Dnt {
     Disabled,
     Enabled,
@@ -104,8 +114,8 @@ pub struct DntHeader {
 }
 
 impl DntHeader {
-    pub fn value(&self) -> &Dnt {
-        &self.value
+    pub fn value(&self) -> Dnt {
+        self.value
     }
 }
 
@@ -174,7 +184,7 @@ mod test {
 
         let dnt: DntHeader = headers.get().unwrap();
 
-        assert_eq!(Dnt::Enabled, *dnt.value());
+        assert_eq!(Dnt::Enabled, dnt.value());
     }
 
     #[test]
