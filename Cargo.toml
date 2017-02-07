@@ -1,7 +1,7 @@
 [package]
 name = "teapot"
-description = "🍵 [WIP] HTTP/1.1 parser and serializer"
-version = "0.1.0"
+description = "[WIP] HTTP/1.1 parser and serializer"
+version = "0.1.1"
 authors = ["Ruben Schmidmeister <ruben.schmidmeister@icloud.com>"]
 repository = "https://github.com/bash/teapot"
 documentation = "https://www.rubys.ninja/teapot/teapot"
