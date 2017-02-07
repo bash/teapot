@@ -97,7 +97,7 @@ impl Headers {
     }
 
     pub fn get_raw(&self, name: &str) -> Vec<&RawHeader> {
-        // TODO: not sure if this is good
+        // TODO: ask @SirRade for an opinion on this
         self.headers
             .iter()
             .filter(|ref header| header.lower_name() == *name)
