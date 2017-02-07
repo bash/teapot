@@ -47,28 +47,31 @@ pub trait TypedHeader: Eq + Sized {
     fn name() -> &'static str;
 
     /// This is the name of the header in its canonical form.
-    /// Used by [`as_raw`] as the header name.
+    /// Used by [`to_raw`] as the header name.
     ///
-    /// [`as_raw`]: trait.TypedHeader.html#method.as_raw
+    /// [`to_raw`]: trait.TypedHeader.html#method.to_raw
     fn canonical_name() -> &'static str;
 
     /// Converts a list of raw values to a `TypedHeader`
-    /// The list is required for headers like `Set-Cookie` which might appear multiple times in a response.
-    /// Other headers might only use the first value of `raw` and ignore the rest
-    // TODO: consider using Result instead of Option (however we still need to be able to represent the absence of a header)
+    /// The list is required for headers like `Set-Cookie` which might appear
+    /// multiple times in a response. Other headers might only
+    /// use the first value of `raw` and ignore the rest.
+    // TODO: consider using Result instead of Option
+    // (however we still need to be able to represent the absence of a header)
     fn parse(raw: &[&RawHeader]) -> Option<Self>;
 
     /// Returns the raw values of this header.
-    /// Used by [`as_raw`] as the header value.
-    /// When multiple values are returned, [`as_raw`] will return multiple raw headers for each value.
+    /// Used by [`to_raw`] as the header value.
+    /// When multiple values are returned,
+    /// [`to_raw`] will return multiple raw headers for each value.
     ///
-    /// [`as_raw`]: trait.TypedHeader.html#method.as_raw
+    /// [`to_raw`]: trait.TypedHeader.html#method.to_raw
     fn raw_values(&self) -> Vec<String>;
 
     /// Converts the header back to one or more [`RawHeader`]s
     ///
     /// [`RawHeader`]: struct.RawHeader.html
-    fn as_raw(&self) -> Vec<RawHeader> {
+    fn to_raw(&self) -> Vec<RawHeader> {
         self.raw_values()
             .iter()
             .map(|value| RawHeader::new(Self::canonical_name(), &value))
@@ -79,12 +82,21 @@ pub trait TypedHeader: Eq + Sized {
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
 pub struct RawHeader {
     name: String,
-    value: String
+    value: String,
 }
 
 impl RawHeader {
     pub fn new<S: Into<String>>(name: S, value: S) -> Self {
-        RawHeader { name: name.into(), value: value.into() }
+        RawHeader {
+            name: name.into(),
+            value: value.into(),
+        }
+    }
+
+    pub fn parse<S: Into<String>>(raw: S) -> Self {
+        let raw = raw.into();
+
+        RawHeader::new("foo", "bar")
     }
 
     pub fn lower_name<'a>(&'a self) -> String {
@@ -111,7 +123,7 @@ impl RawHeader {
 /// assert_eq!(Dnt::Unspecified, dnt.value());
 /// ```
 pub struct Headers {
-    headers: BTreeSet<RawHeader>
+    headers: BTreeSet<RawHeader>,
 }
 
 // TODO: allow creation from iterator
@@ -121,7 +133,7 @@ impl Headers {
     }
 
     pub fn append<H: TypedHeader>(&mut self, header: H) {
-        for header in header.as_raw() {
+        for header in header.to_raw() {
             self.append_raw(header);
         }
     }
@@ -149,7 +161,7 @@ impl Headers {
 pub enum Dnt {
     Disabled,
     Enabled,
-    Unspecified
+    Unspecified,
 }
 
 impl fmt::Display for Dnt {
@@ -157,7 +169,7 @@ impl fmt::Display for Dnt {
         let value = match *self {
             Dnt::Disabled => "0",
             Dnt::Enabled => "1",
-            Dnt::Unspecified => ""
+            Dnt::Unspecified => "",
         };
 
         write!(f, "{}", value)
@@ -166,7 +178,7 @@ impl fmt::Display for Dnt {
 
 #[derive(PartialEq, Eq, Debug)]
 pub struct DntHeader {
-    value: Dnt
+    value: Dnt,
 }
 
 impl DntHeader {
@@ -196,7 +208,7 @@ impl TypedHeader for DntHeader {
         let value = match raw[0].value() {
             "1" => Dnt::Enabled,
             "0" => Dnt::Disabled,
-            _ => Dnt::Unspecified
+            _ => Dnt::Unspecified,
         };
 
         Some(DntHeader { value: value })
@@ -209,7 +221,7 @@ impl TypedHeader for DntHeader {
 
 #[derive(PartialEq, Eq, Debug)]
 pub struct UserAgentHeader {
-    value: String
+    value: String,
 }
 
 impl UserAgentHeader {
@@ -292,7 +304,7 @@ mod test {
 
         headers.append(DntHeader::new(Dnt::Enabled));
 
-        let result : DntHeader = headers.get().unwrap();
+        let result: DntHeader = headers.get().unwrap();
 
         assert_eq!(DntHeader::new(Dnt::Enabled), result);
     }
