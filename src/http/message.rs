@@ -2,12 +2,13 @@ use std::io::Read;
 use std::convert::From;
 use std::string::FromUtf8Error;
 use super::lines::{ReadLines, LinesError};
+use super::headers::{Headers, RawHeader};
 
 #[derive(Debug)]
 pub enum ParseError {
     Hello,
     FromUtf8Error(FromUtf8Error),
-    ReadError(::std::io::Error)
+    ReadError(::std::io::Error),
 }
 
 impl From<FromUtf8Error> for ParseError {
@@ -19,15 +20,15 @@ impl From<FromUtf8Error> for ParseError {
 impl From<LinesError> for ParseError {
     fn from(err: LinesError) -> Self {
         match err {
-            LinesError::ReadError(err) => ParseError::ReadError(err)
+            LinesError::ReadError(err) => ParseError::ReadError(err),
         }
     }
 }
 
 pub struct Message<'a> {
     start_line: String,
-    // headers: Headers
-    body: &'a Read
+    headers: Headers,
+    body: &'a Read,
 }
 
 impl<'a> Message<'a> {
@@ -35,15 +36,25 @@ impl<'a> Message<'a> {
         &self.start_line
     }
 
+    pub fn new<S: Into<String>>(start_line: S, headers: Headers, body: &'a Read) -> Self {
+        Message {
+            start_line: start_line.into(),
+            headers: headers,
+            body: body,
+        }
+    }
+
     pub fn parse(buffer: &mut Read) -> Result<Message, ParseError> {
         let start_line = {
             let mut lines = buffer.lines();
 
             // TODO: replace .unwrap() with proper error
-            try!(lines.next().unwrap())
+            let raw = try!(lines.next().unwrap());
+
+            try!(String::from_utf8(raw))
         };
 
-        Ok(Message { start_line: String::from_utf8(start_line)?, body: buffer })
+        Ok(Message::new(start_line, Headers::new(), buffer))
     }
 }
 
