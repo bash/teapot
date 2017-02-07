@@ -119,14 +119,20 @@ impl Headers {
         Headers { headers: BTreeSet::new() }
     }
 
+    pub fn append<H: TypedHeader>(&mut self, header: H) {
+        for header in header.as_raw() {
+            self.append_raw(header);
+        }
+    }
+
     pub fn append_raw(&mut self, header: RawHeader) {
         self.headers.insert(header);
     }
 
-    pub fn get<T: TypedHeader>(&self) -> Option<T> {
-        let raw = self.get_raw(T::name());
+    pub fn get<H: TypedHeader>(&self) -> Option<H> {
+        let raw = self.get_raw(H::name());
 
-        T::parse(raw.as_slice())
+        H::parse(raw.as_slice())
     }
 
     pub fn get_raw(&self, name: &str) -> Vec<&RawHeader> {
@@ -163,6 +169,10 @@ pub struct DntHeader {
 }
 
 impl DntHeader {
+    pub fn new(value: Dnt) -> Self {
+        DntHeader { value: value }
+    }
+
     pub fn value(&self) -> Dnt {
         self.value
     }
@@ -273,5 +283,16 @@ mod test {
         assert_eq!("0", format!("{}", Dnt::Disabled));
         assert_eq!("1", format!("{}", Dnt::Enabled));
         assert_eq!("", format!("{}", Dnt::Unspecified));
+    }
+
+    #[test]
+    fn test_append() {
+        let mut headers = Headers::new();
+
+        headers.append(DntHeader::new(Dnt::Enabled));
+
+        let result : DntHeader = headers.get().unwrap();
+
+        assert_eq!(DntHeader::new(Dnt::Enabled), result);
     }
 }
