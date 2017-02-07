@@ -1,7 +1,43 @@
 use std::collections::BTreeSet;
 
+/// # Examples
+///
+/// ```
+/// use teapot::http::headers::{TypedHeader, RawHeader};
+///
+/// #[derive(PartialEq, Eq, Debug)]
+/// pub struct UserAgentHeader {
+///     value: String
+/// }
+///
+/// impl UserAgentHeader {
+///     pub fn value(&self) -> &str {
+///         &self.value
+///     }
+/// }
+///
+/// impl TypedHeader for UserAgentHeader {
+///     fn name() -> &'static str {
+///         "user-agent"
+///     }
+///
+///     fn parse(raw: &[RawHeader]) -> Option<Self> {
+///         if raw.len() == 0 {
+///             return None;
+///         }
+///
+///         Some(UserAgentHeader { value: raw[0].value().to_string() })
+///     }
+/// }
+/// ```
 pub trait TypedHeader: Eq + Sized {
+    /// This is the name of the header in lower case.
+    /// It is used by `Headers` to look up the raw header(s).
     fn name() -> &'static str;
+
+    /// Converts a list of raw values to a `TypedHeader`
+    /// The list is required for headers like `Set-Cookie` which might appear multiple times in a response.
+    /// Other headers might only use the first value of `raw` and ignore the rest
     fn parse(raw: &[RawHeader]) -> Option<Self>;
 }
 
@@ -16,11 +52,11 @@ impl<'a> RawHeader<'a> {
         RawHeader { name: name, value: value }
     }
 
-    fn name(&self) -> &str {
+    pub fn name(&self) -> &str {
         return &self.name
     }
 
-    fn value(&self) -> &str {
+    pub fn value(&self) -> &str {
         return &self.value
     }
 }
@@ -35,7 +71,7 @@ impl<'a> Headers<'a> {
         Headers { headers: BTreeSet::new() }
     }
 
-    pub fn append(&mut self, header: RawHeader<'a>) {
+    pub fn append_raw(&mut self, header: RawHeader<'a>) {
         self.headers.insert(header);
     }
 
@@ -49,47 +85,72 @@ impl<'a> Headers<'a> {
         // TODO: not sure if this is good
         self.headers
             .iter()
-            .filter(|ref header| *header.name() == *name)
+            .filter(|ref header| *header.name().to_lowercase() == *name)
             .map(|ref header| *header.clone())
             .collect()
     }
 }
 
 #[derive(PartialEq, Eq, Debug)]
-pub enum DntValue {
+pub enum Dnt {
     Disabled,
     Enabled,
     Unspecified
 }
 
 #[derive(PartialEq, Eq, Debug)]
-pub struct Dnt {
-    value: DntValue
+pub struct DntHeader {
+    value: Dnt
 }
 
-impl Dnt {
-    pub fn value(&self) -> &DntValue {
+impl DntHeader {
+    pub fn value(&self) -> &Dnt {
         &self.value
     }
 }
 
-impl TypedHeader for Dnt {
+impl TypedHeader for DntHeader {
     fn name() -> &'static str {
-        return "DNT"
+        return "dnt"
     }
 
     fn parse(raw: &[RawHeader]) -> Option<Self> {
         if raw.len() == 0 {
-            return Some(Dnt { value: DntValue::Unspecified });
+            return Some(DntHeader { value: Dnt::Unspecified });
         }
 
         let value = match raw[0].value() {
-            "1" => DntValue::Enabled,
-            "0" => DntValue::Disabled,
-            _ => DntValue::Unspecified
+            "1" => Dnt::Enabled,
+            "0" => Dnt::Disabled,
+            _ => Dnt::Unspecified
         };
 
-        Some(Dnt { value: value })
+        Some(DntHeader { value: value })
+    }
+}
+
+#[derive(PartialEq, Eq, Debug)]
+pub struct UserAgentHeader {
+    value: String
+}
+
+impl UserAgentHeader {
+    pub fn value(&self) -> &str {
+        &self.value
+    }
+}
+
+impl TypedHeader for UserAgentHeader {
+    fn name() -> &'static str {
+        "user-agent"
+    }
+
+    fn parse(raw: &[RawHeader]) -> Option<Self> {
+        if raw.len() == 0 {
+            return None;
+        }
+
+        Some(UserAgentHeader { value: raw[0].value().to_string() })
     }
 }
 
@@ -109,10 +170,26 @@ mod test {
     fn test_get_header() {
         let mut headers = Headers::new();
 
-        headers.append(RawHeader::new("DNT", "1"));
+        headers.append_raw(RawHeader::new("dnt", "1"));
 
-        let dnt: Dnt = headers.get().unwrap();
+        let dnt: DntHeader = headers.get().unwrap();
 
-        assert_eq!(DntValue::Enabled, *dnt.value());
+        assert_eq!(Dnt::Enabled, *dnt.value());
+    }
+
+    #[test]
+    fn test_user_agent() {
+        {
+            let ua = UserAgentHeader::parse(&[RawHeader::new("user-agent", "foobar/1.1")]);
+
+            assert!(ua.is_some());
+            assert_eq!("foobar/1.1", ua.unwrap().value());
+        }
+
+        {
+            let ua = UserAgentHeader::parse(&[]);
+
+            assert!(ua.is_none());
+        }
     }
 }
