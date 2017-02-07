@@ -1,11 +1,11 @@
-use std::io::{Read};
+use std::io::Read;
 
 const CARRIAGE_RETURN: u8 = 13u8;
 const LINEFEED: u8 = 10u8;
 
 #[derive(Debug)]
 pub enum LinesError {
-    ReadError(::std::io::Error)
+    ReadError(::std::io::Error),
 }
 
 impl From<::std::io::Error> for LinesError {
@@ -15,7 +15,7 @@ impl From<::std::io::Error> for LinesError {
 }
 
 pub struct Lines<R> {
-    inner: R
+    inner: R,
 }
 
 impl<R> Lines<R> {
@@ -41,8 +41,8 @@ impl<R: Read> Iterator for Lines<R> {
             if bytes_read == 0 {
                 return match buf.len() {
                     0 => None,
-                    _ => Some(Ok(buf))
-                }
+                    _ => Some(Ok(buf)),
+                };
             }
 
             if prev_byte == CARRIAGE_RETURN && byte == LINEFEED {
@@ -57,7 +57,9 @@ impl<R: Read> Iterator for Lines<R> {
 }
 
 pub trait ReadLines {
-    fn lines(self) -> Lines<Self> where Self: Sized {
+    fn lines(self) -> Lines<Self>
+        where Self: Sized
+    {
         Lines::new(self)
     }
 }
@@ -74,11 +76,15 @@ mod test {
         let bytes = "Foo\r\nBar\r\nBaz\r\n\r\nQux".as_bytes();
         let mut iter = Lines::new(bytes);
 
-        assert_eq!("Foo".to_string().into_bytes(), iter.next().unwrap().unwrap());
-        assert_eq!("Bar".to_string().into_bytes(), iter.next().unwrap().unwrap());
-        assert_eq!("Baz".to_string().into_bytes(), iter.next().unwrap().unwrap());
+        assert_eq!("Foo".to_string().into_bytes(),
+                   iter.next().unwrap().unwrap());
+        assert_eq!("Bar".to_string().into_bytes(),
+                   iter.next().unwrap().unwrap());
+        assert_eq!("Baz".to_string().into_bytes(),
+                   iter.next().unwrap().unwrap());
         assert_eq!("".to_string().into_bytes(), iter.next().unwrap().unwrap());
-        assert_eq!("Qux".to_string().into_bytes(), iter.next().unwrap().unwrap());
+        assert_eq!("Qux".to_string().into_bytes(),
+                   iter.next().unwrap().unwrap());
         assert!(iter.next().is_none());
     }
 }
