@@ -14,11 +14,7 @@ script:
 - travis-cargo doc --no-deps
 
 after_success:
-- travis-cargo --only nightly doc-upload
-
-matrix:
-  allow_failures:
-  - rust: nightly
+- travis-cargo --only nightly doc-uploadg
 
 env:
   global:
