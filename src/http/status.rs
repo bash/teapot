@@ -339,7 +339,7 @@ impl StatusCode {
         }
     }
 
-    pub fn reason_phrase(&self) -> Option<&'static str> {
+    pub fn canonical_reason(&self) -> Option<&'static str> {
         match *self {
             StatusCode::Continue => Some("Continue"),
             StatusCode::SwitchingProtocols => Some("Switching Protocols"),
@@ -521,6 +521,6 @@ mod test {
         assert_eq!(value, status.into());
         assert_eq!(value, status.to_u16());
         assert_eq!(class, status.class());
-        assert_eq!(reason_phrase, status.reason_phrase().unwrap());
+        assert_eq!(reason_phrase, status.canonical_reason().unwrap());
     }
 }
