@@ -1,5 +1,5 @@
 #[derive(PartialEq, Eq, Debug, Clone, Copy)]
-pub enum Status {
+pub enum StatusCode {
     /// 100 Continue
     /// [RFC7231, Section 6.2.1](http://www.iana.org/go/rfc7231)
     Continue,
@@ -197,134 +197,134 @@ pub enum StatusClass {
     None
 }
 
-impl Status {
+impl StatusCode {
     pub fn from_u16(value: u16) -> Self {
         match value {
-            100 => Status::Continue,
-            101 => Status::SwitchingProtocols,
-            102 => Status::Processing,
-            200 => Status::Ok,
-            201 => Status::Created,
-            202 => Status::Accepted,
-            203 => Status::NonAuthoritativeInformation,
-            204 => Status::NoContent,
-            205 => Status::ResetContent,
-            206 => Status::PartialContent,
-            207 => Status::MultiStatus,
-            208 => Status::AlreadyReported,
-            226 => Status::ImUsed,
-            300 => Status::MultipleChoices,
-            301 => Status::MovedPermanently,
-            302 => Status::Found,
-            303 => Status::SeeOther,
-            304 => Status::NotModified,
-            305 => Status::UseProxy,
-            307 => Status::TemporaryRedirect,
-            308 => Status::PermanentRedirect,
-            400 => Status::BadRequest,
-            401 => Status::Unauthorized,
-            402 => Status::PaymentRequired,
-            403 => Status::Forbidden,
-            404 => Status::NotFound,
-            405 => Status::MethodNotAllowed,
-            406 => Status::NotAcceptable,
-            407 => Status::ProxyAuthenticationRequired,
-            408 => Status::RequestTimeout,
-            409 => Status::Conflict,
-            410 => Status::Gone,
-            411 => Status::LengthRequired,
-            412 => Status::PreconditionFailed,
-            413 => Status::PayloadTooLarge,
-            414 => Status::UriTooLong,
-            415 => Status::UnsupportedMediaType,
-            416 => Status::RangeNotSatisfiable,
-            417 => Status::ExpectationFailed,
-            421 => Status::MisdirectedRequest,
-            422 => Status::UnprocessableEntity,
-            423 => Status::Locked,
-            424 => Status::FailedDependency,
-            426 => Status::UpgradeRequired,
-            428 => Status::PreconditionRequired,
-            429 => Status::TooManyRequests,
-            431 => Status::RequestHeaderFieldsTooLarge,
-            451 => Status::UnavailableForLegalReasons,
-            500 => Status::InternalServerError,
-            501 => Status::NotImplemented,
-            502 => Status::BadGateway,
-            503 => Status::ServiceUnavailable,
-            504 => Status::GatewayTimeout,
-            505 => Status::HttpVersionNotSupported,
-            506 => Status::VariantAlsoNegotiates,
-            507 => Status::InsufficientStorage,
-            508 => Status::LoopDetected,
-            510 => Status::NotExtended,
-            511 => Status::NetworkAuthenticationRequired,
-            _ => Status::Unregistered(value)
+            100 => StatusCode::Continue,
+            101 => StatusCode::SwitchingProtocols,
+            102 => StatusCode::Processing,
+            200 => StatusCode::Ok,
+            201 => StatusCode::Created,
+            202 => StatusCode::Accepted,
+            203 => StatusCode::NonAuthoritativeInformation,
+            204 => StatusCode::NoContent,
+            205 => StatusCode::ResetContent,
+            206 => StatusCode::PartialContent,
+            207 => StatusCode::MultiStatus,
+            208 => StatusCode::AlreadyReported,
+            226 => StatusCode::ImUsed,
+            300 => StatusCode::MultipleChoices,
+            301 => StatusCode::MovedPermanently,
+            302 => StatusCode::Found,
+            303 => StatusCode::SeeOther,
+            304 => StatusCode::NotModified,
+            305 => StatusCode::UseProxy,
+            307 => StatusCode::TemporaryRedirect,
+            308 => StatusCode::PermanentRedirect,
+            400 => StatusCode::BadRequest,
+            401 => StatusCode::Unauthorized,
+            402 => StatusCode::PaymentRequired,
+            403 => StatusCode::Forbidden,
+            404 => StatusCode::NotFound,
+            405 => StatusCode::MethodNotAllowed,
+            406 => StatusCode::NotAcceptable,
+            407 => StatusCode::ProxyAuthenticationRequired,
+            408 => StatusCode::RequestTimeout,
+            409 => StatusCode::Conflict,
+            410 => StatusCode::Gone,
+            411 => StatusCode::LengthRequired,
+            412 => StatusCode::PreconditionFailed,
+            413 => StatusCode::PayloadTooLarge,
+            414 => StatusCode::UriTooLong,
+            415 => StatusCode::UnsupportedMediaType,
+            416 => StatusCode::RangeNotSatisfiable,
+            417 => StatusCode::ExpectationFailed,
+            421 => StatusCode::MisdirectedRequest,
+            422 => StatusCode::UnprocessableEntity,
+            423 => StatusCode::Locked,
+            424 => StatusCode::FailedDependency,
+            426 => StatusCode::UpgradeRequired,
+            428 => StatusCode::PreconditionRequired,
+            429 => StatusCode::TooManyRequests,
+            431 => StatusCode::RequestHeaderFieldsTooLarge,
+            451 => StatusCode::UnavailableForLegalReasons,
+            500 => StatusCode::InternalServerError,
+            501 => StatusCode::NotImplemented,
+            502 => StatusCode::BadGateway,
+            503 => StatusCode::ServiceUnavailable,
+            504 => StatusCode::GatewayTimeout,
+            505 => StatusCode::HttpVersionNotSupported,
+            506 => StatusCode::VariantAlsoNegotiates,
+            507 => StatusCode::InsufficientStorage,
+            508 => StatusCode::LoopDetected,
+            510 => StatusCode::NotExtended,
+            511 => StatusCode::NetworkAuthenticationRequired,
+            _ => StatusCode::Unregistered(value)
         }
     }
 
     pub fn to_u16(&self) -> u16 {
         match *self {
-            Status::Continue => 100,
-            Status::SwitchingProtocols => 101,
-            Status::Processing => 102,
-            Status::Ok => 200,
-            Status::Created => 201,
-            Status::Accepted => 202,
-            Status::NonAuthoritativeInformation => 203,
-            Status::NoContent => 204,
-            Status::ResetContent => 205,
-            Status::PartialContent => 206,
-            Status::MultiStatus => 207,
-            Status::AlreadyReported => 208,
-            Status::ImUsed => 226,
-            Status::MultipleChoices => 300,
-            Status::MovedPermanently => 301,
-            Status::Found => 302,
-            Status::SeeOther => 303,
-            Status::NotModified => 304,
-            Status::UseProxy => 305,
-            Status::TemporaryRedirect => 307,
-            Status::PermanentRedirect => 308,
-            Status::BadRequest => 400,
-            Status::Unauthorized => 401,
-            Status::PaymentRequired => 402,
-            Status::Forbidden => 403,
-            Status::NotFound => 404,
-            Status::MethodNotAllowed => 405,
-            Status::NotAcceptable => 406,
-            Status::ProxyAuthenticationRequired => 407,
-            Status::RequestTimeout => 408,
-            Status::Conflict => 409,
-            Status::Gone => 410,
-            Status::LengthRequired => 411,
-            Status::PreconditionFailed => 412,
-            Status::PayloadTooLarge => 413,
-            Status::UriTooLong => 414,
-            Status::UnsupportedMediaType => 415,
-            Status::RangeNotSatisfiable => 416,
-            Status::ExpectationFailed => 417,
-            Status::MisdirectedRequest => 421,
-            Status::UnprocessableEntity => 422,
-            Status::Locked => 423,
-            Status::FailedDependency => 424,
-            Status::UpgradeRequired => 426,
-            Status::PreconditionRequired => 428,
-            Status::TooManyRequests => 429,
-            Status::RequestHeaderFieldsTooLarge => 431,
-            Status::UnavailableForLegalReasons => 451,
-            Status::InternalServerError => 500,
-            Status::NotImplemented => 501,
-            Status::BadGateway => 502,
-            Status::ServiceUnavailable => 503,
-            Status::GatewayTimeout => 504,
-            Status::HttpVersionNotSupported => 505,
-            Status::VariantAlsoNegotiates => 506,
-            Status::InsufficientStorage => 507,
-            Status::LoopDetected => 508,
-            Status::NotExtended => 510,
-            Status::NetworkAuthenticationRequired => 511,
-            Status::Unregistered(value) => value
+            StatusCode::Continue => 100,
+            StatusCode::SwitchingProtocols => 101,
+            StatusCode::Processing => 102,
+            StatusCode::Ok => 200,
+            StatusCode::Created => 201,
+            StatusCode::Accepted => 202,
+            StatusCode::NonAuthoritativeInformation => 203,
+            StatusCode::NoContent => 204,
+            StatusCode::ResetContent => 205,
+            StatusCode::PartialContent => 206,
+            StatusCode::MultiStatus => 207,
+            StatusCode::AlreadyReported => 208,
+            StatusCode::ImUsed => 226,
+            StatusCode::MultipleChoices => 300,
+            StatusCode::MovedPermanently => 301,
+            StatusCode::Found => 302,
+            StatusCode::SeeOther => 303,
+            StatusCode::NotModified => 304,
+            StatusCode::UseProxy => 305,
+            StatusCode::TemporaryRedirect => 307,
+            StatusCode::PermanentRedirect => 308,
+            StatusCode::BadRequest => 400,
+            StatusCode::Unauthorized => 401,
+            StatusCode::PaymentRequired => 402,
+            StatusCode::Forbidden => 403,
+            StatusCode::NotFound => 404,
+            StatusCode::MethodNotAllowed => 405,
+            StatusCode::NotAcceptable => 406,
+            StatusCode::ProxyAuthenticationRequired => 407,
+            StatusCode::RequestTimeout => 408,
+            StatusCode::Conflict => 409,
+            StatusCode::Gone => 410,
+            StatusCode::LengthRequired => 411,
+            StatusCode::PreconditionFailed => 412,
+            StatusCode::PayloadTooLarge => 413,
+            StatusCode::UriTooLong => 414,
+            StatusCode::UnsupportedMediaType => 415,
+            StatusCode::RangeNotSatisfiable => 416,
+            StatusCode::ExpectationFailed => 417,
+            StatusCode::MisdirectedRequest => 421,
+            StatusCode::UnprocessableEntity => 422,
+            StatusCode::Locked => 423,
+            StatusCode::FailedDependency => 424,
+            StatusCode::UpgradeRequired => 426,
+            StatusCode::PreconditionRequired => 428,
+            StatusCode::TooManyRequests => 429,
+            StatusCode::RequestHeaderFieldsTooLarge => 431,
+            StatusCode::UnavailableForLegalReasons => 451,
+            StatusCode::InternalServerError => 500,
+            StatusCode::NotImplemented => 501,
+            StatusCode::BadGateway => 502,
+            StatusCode::ServiceUnavailable => 503,
+            StatusCode::GatewayTimeout => 504,
+            StatusCode::HttpVersionNotSupported => 505,
+            StatusCode::VariantAlsoNegotiates => 506,
+            StatusCode::InsufficientStorage => 507,
+            StatusCode::LoopDetected => 508,
+            StatusCode::NotExtended => 510,
+            StatusCode::NetworkAuthenticationRequired => 511,
+            StatusCode::Unregistered(value) => value
         }
     }
 
@@ -341,65 +341,65 @@ impl Status {
 
     pub fn reason_phrase(&self) -> Option<&'static str> {
         match *self {
-            Status::Continue => Some("Continue"),
-            Status::SwitchingProtocols => Some("Switching Protocols"),
-            Status::Processing => Some("Processing"),
-            Status::Ok => Some("OK"),
-            Status::Created => Some("Created"),
-            Status::Accepted => Some("Accepted"),
-            Status::NonAuthoritativeInformation => Some("Non-Authoritative Information"),
-            Status::NoContent => Some("No Content"),
-            Status::ResetContent => Some("Reset Content"),
-            Status::PartialContent => Some("Partial Content"),
-            Status::MultiStatus => Some("Multi-Status"),
-            Status::AlreadyReported => Some("Already Reported"),
-            Status::ImUsed => Some("IM Used"),
-            Status::MultipleChoices => Some("Multiple Choices"),
-            Status::MovedPermanently => Some("Moved Permanently"),
-            Status::Found => Some("Found"),
-            Status::SeeOther => Some("See Other"),
-            Status::NotModified => Some("Not Modified"),
-            Status::UseProxy => Some("Use Proxy"),
-            Status::TemporaryRedirect => Some("Temporary Redirect"),
-            Status::PermanentRedirect => Some("Permanent Redirect"),
-            Status::BadRequest => Some("Bad Request"),
-            Status::Unauthorized => Some("Unauthorized"),
-            Status::PaymentRequired => Some("Payment Required"),
-            Status::Forbidden => Some("Forbidden"),
-            Status::NotFound => Some("Not Found"),
-            Status::MethodNotAllowed => Some("Method Not Allowed"),
-            Status::NotAcceptable => Some("Not Acceptable"),
-            Status::ProxyAuthenticationRequired => Some("Proxy Authentication Required"),
-            Status::RequestTimeout => Some("Request Timeout"),
-            Status::Conflict => Some("Conflict"),
-            Status::Gone => Some("Gone"),
-            Status::LengthRequired => Some("Length Required"),
-            Status::PreconditionFailed => Some("Precondition Failed"),
-            Status::PayloadTooLarge => Some("Payload Too Large"),
-            Status::UriTooLong => Some("URI Too Long"),
-            Status::UnsupportedMediaType => Some("Unsupported Media Type"),
-            Status::RangeNotSatisfiable => Some("Range Not Satisfiable"),
-            Status::ExpectationFailed => Some("Expectation Failed"),
-            Status::MisdirectedRequest => Some("Misdirected Request"),
-            Status::UnprocessableEntity => Some("Unprocessable Entity"),
-            Status::Locked => Some("Locked"),
-            Status::FailedDependency => Some("Failed Dependency"),
-            Status::UpgradeRequired => Some("Upgrade Required"),
-            Status::PreconditionRequired => Some("Precondition Required"),
-            Status::TooManyRequests => Some("Too Many Requests"),
-            Status::RequestHeaderFieldsTooLarge => Some("Request Header Fields Too Large"),
-            Status::UnavailableForLegalReasons => Some("Unavailable For Legal Reasons"),
-            Status::InternalServerError => Some("Internal Server Error"),
-            Status::NotImplemented => Some("Not Implemented"),
-            Status::BadGateway => Some("Bad Gateway"),
-            Status::ServiceUnavailable => Some("Service Unavailable"),
-            Status::GatewayTimeout => Some("Gateway Timeout"),
-            Status::HttpVersionNotSupported => Some("HTTP Version Not Supported"),
-            Status::VariantAlsoNegotiates => Some("Variant Also Negotiates"),
-            Status::InsufficientStorage => Some("Insufficient Storage"),
-            Status::LoopDetected => Some("Loop Detected"),
-            Status::NotExtended => Some("Not Extended"),
-            Status::NetworkAuthenticationRequired => Some("Network Authentication Required"),
+            StatusCode::Continue => Some("Continue"),
+            StatusCode::SwitchingProtocols => Some("Switching Protocols"),
+            StatusCode::Processing => Some("Processing"),
+            StatusCode::Ok => Some("OK"),
+            StatusCode::Created => Some("Created"),
+            StatusCode::Accepted => Some("Accepted"),
+            StatusCode::NonAuthoritativeInformation => Some("Non-Authoritative Information"),
+            StatusCode::NoContent => Some("No Content"),
+            StatusCode::ResetContent => Some("Reset Content"),
+            StatusCode::PartialContent => Some("Partial Content"),
+            StatusCode::MultiStatus => Some("Multi-Status"),
+            StatusCode::AlreadyReported => Some("Already Reported"),
+            StatusCode::ImUsed => Some("IM Used"),
+            StatusCode::MultipleChoices => Some("Multiple Choices"),
+            StatusCode::MovedPermanently => Some("Moved Permanently"),
+            StatusCode::Found => Some("Found"),
+            StatusCode::SeeOther => Some("See Other"),
+            StatusCode::NotModified => Some("Not Modified"),
+            StatusCode::UseProxy => Some("Use Proxy"),
+            StatusCode::TemporaryRedirect => Some("Temporary Redirect"),
+            StatusCode::PermanentRedirect => Some("Permanent Redirect"),
+            StatusCode::BadRequest => Some("Bad Request"),
+            StatusCode::Unauthorized => Some("Unauthorized"),
+            StatusCode::PaymentRequired => Some("Payment Required"),
+            StatusCode::Forbidden => Some("Forbidden"),
+            StatusCode::NotFound => Some("Not Found"),
+            StatusCode::MethodNotAllowed => Some("Method Not Allowed"),
+            StatusCode::NotAcceptable => Some("Not Acceptable"),
+            StatusCode::ProxyAuthenticationRequired => Some("Proxy Authentication Required"),
+            StatusCode::RequestTimeout => Some("Request Timeout"),
+            StatusCode::Conflict => Some("Conflict"),
+            StatusCode::Gone => Some("Gone"),
+            StatusCode::LengthRequired => Some("Length Required"),
+            StatusCode::PreconditionFailed => Some("Precondition Failed"),
+            StatusCode::PayloadTooLarge => Some("Payload Too Large"),
+            StatusCode::UriTooLong => Some("URI Too Long"),
+            StatusCode::UnsupportedMediaType => Some("Unsupported Media Type"),
+            StatusCode::RangeNotSatisfiable => Some("Range Not Satisfiable"),
+            StatusCode::ExpectationFailed => Some("Expectation Failed"),
+            StatusCode::MisdirectedRequest => Some("Misdirected Request"),
+            StatusCode::UnprocessableEntity => Some("Unprocessable Entity"),
+            StatusCode::Locked => Some("Locked"),
+            StatusCode::FailedDependency => Some("Failed Dependency"),
+            StatusCode::UpgradeRequired => Some("Upgrade Required"),
+            StatusCode::PreconditionRequired => Some("Precondition Required"),
+            StatusCode::TooManyRequests => Some("Too Many Requests"),
+            StatusCode::RequestHeaderFieldsTooLarge => Some("Request Header Fields Too Large"),
+            StatusCode::UnavailableForLegalReasons => Some("Unavailable For Legal Reasons"),
+            StatusCode::InternalServerError => Some("Internal Server Error"),
+            StatusCode::NotImplemented => Some("Not Implemented"),
+            StatusCode::BadGateway => Some("Bad Gateway"),
+            StatusCode::ServiceUnavailable => Some("Service Unavailable"),
+            StatusCode::GatewayTimeout => Some("Gateway Timeout"),
+            StatusCode::HttpVersionNotSupported => Some("HTTP Version Not Supported"),
+            StatusCode::VariantAlsoNegotiates => Some("Variant Also Negotiates"),
+            StatusCode::InsufficientStorage => Some("Insufficient Storage"),
+            StatusCode::LoopDetected => Some("Loop Detected"),
+            StatusCode::NotExtended => Some("Not Extended"),
+            StatusCode::NetworkAuthenticationRequired => Some("Network Authentication Required"),
             _ => None
         }
     }
@@ -429,13 +429,13 @@ impl Status {
     }
 }
 
-impl Into<u16> for Status {
+impl Into<u16> for StatusCode {
     fn into(self) -> u16 {
         self.to_u16()
     }
 }
 
-impl From<u16> for Status {
+impl From<u16> for StatusCode {
     fn from(value: u16) -> Self {
         Self::from_u16(value)
     }
@@ -447,77 +447,77 @@ mod test {
 
     #[test]
     fn test_unregistered_status() {
-        assert!(Status::Unregistered(612).reason_phrase().is_none());
-        assert_eq!(StatusClass::None, Status::Unregistered(612).class());
+        assert!(StatusCode::Unregistered(612).reason_phrase().is_none());
+        assert_eq!(StatusClass::None, StatusCode::Unregistered(612).class());
     }
 
     #[test]
     fn test_registered_statuses() {
-        test_status_code(Status::Continue, 100, "Continue", StatusClass::Informational);
-        test_status_code(Status::SwitchingProtocols, 101, "Switching Protocols", StatusClass::Informational);
-        test_status_code(Status::Processing, 102, "Processing", StatusClass::Informational);
-        test_status_code(Status::Ok, 200, "OK", StatusClass::Success);
-        test_status_code(Status::Created, 201, "Created", StatusClass::Success);
-        test_status_code(Status::Accepted, 202, "Accepted", StatusClass::Success);
-        test_status_code(Status::NonAuthoritativeInformation, 203, "Non-Authoritative Information", StatusClass::Success);
-        test_status_code(Status::NoContent, 204, "No Content", StatusClass::Success);
-        test_status_code(Status::ResetContent, 205, "Reset Content", StatusClass::Success);
-        test_status_code(Status::PartialContent, 206, "Partial Content", StatusClass::Success);
-        test_status_code(Status::MultiStatus, 207, "Multi-Status", StatusClass::Success);
-        test_status_code(Status::AlreadyReported, 208, "Already Reported", StatusClass::Success);
-        test_status_code(Status::ImUsed, 226, "IM Used", StatusClass::Success);
-        test_status_code(Status::MultipleChoices, 300, "Multiple Choices", StatusClass::Redirection);
-        test_status_code(Status::MovedPermanently, 301, "Moved Permanently", StatusClass::Redirection);
-        test_status_code(Status::Found, 302, "Found", StatusClass::Redirection);
-        test_status_code(Status::SeeOther, 303, "See Other", StatusClass::Redirection);
-        test_status_code(Status::NotModified, 304, "Not Modified", StatusClass::Redirection);
-        test_status_code(Status::UseProxy, 305, "Use Proxy", StatusClass::Redirection);
-        test_status_code(Status::TemporaryRedirect, 307, "Temporary Redirect", StatusClass::Redirection);
-        test_status_code(Status::PermanentRedirect, 308, "Permanent Redirect", StatusClass::Redirection);
-        test_status_code(Status::BadRequest, 400, "Bad Request", StatusClass::ClientError);
-        test_status_code(Status::Unauthorized, 401, "Unauthorized", StatusClass::ClientError);
-        test_status_code(Status::PaymentRequired, 402, "Payment Required", StatusClass::ClientError);
-        test_status_code(Status::Forbidden, 403, "Forbidden", StatusClass::ClientError);
-        test_status_code(Status::NotFound, 404, "Not Found", StatusClass::ClientError);
-        test_status_code(Status::MethodNotAllowed, 405, "Method Not Allowed", StatusClass::ClientError);
-        test_status_code(Status::NotAcceptable, 406, "Not Acceptable", StatusClass::ClientError);
-        test_status_code(Status::ProxyAuthenticationRequired, 407, "Proxy Authentication Required", StatusClass::ClientError);
-        test_status_code(Status::RequestTimeout, 408, "Request Timeout", StatusClass::ClientError);
-        test_status_code(Status::Conflict, 409, "Conflict", StatusClass::ClientError);
-        test_status_code(Status::Gone, 410, "Gone", StatusClass::ClientError);
-        test_status_code(Status::LengthRequired, 411, "Length Required", StatusClass::ClientError);
-        test_status_code(Status::PreconditionFailed, 412, "Precondition Failed", StatusClass::ClientError);
-        test_status_code(Status::PayloadTooLarge, 413, "Payload Too Large", StatusClass::ClientError);
-        test_status_code(Status::UriTooLong, 414, "URI Too Long", StatusClass::ClientError);
-        test_status_code(Status::UnsupportedMediaType, 415, "Unsupported Media Type", StatusClass::ClientError);
-        test_status_code(Status::RangeNotSatisfiable, 416, "Range Not Satisfiable", StatusClass::ClientError);
-        test_status_code(Status::ExpectationFailed, 417, "Expectation Failed", StatusClass::ClientError);
-        test_status_code(Status::MisdirectedRequest, 421, "Misdirected Request", StatusClass::ClientError);
-        test_status_code(Status::UnprocessableEntity, 422, "Unprocessable Entity", StatusClass::ClientError);
-        test_status_code(Status::Locked, 423, "Locked", StatusClass::ClientError);
-        test_status_code(Status::FailedDependency, 424, "Failed Dependency", StatusClass::ClientError);
-        test_status_code(Status::UpgradeRequired, 426, "Upgrade Required", StatusClass::ClientError);
-        test_status_code(Status::PreconditionRequired, 428, "Precondition Required", StatusClass::ClientError);
-        test_status_code(Status::TooManyRequests, 429, "Too Many Requests", StatusClass::ClientError);
-        test_status_code(Status::RequestHeaderFieldsTooLarge, 431, "Request Header Fields Too Large", StatusClass::ClientError);
-        test_status_code(Status::UnavailableForLegalReasons, 451, "Unavailable For Legal Reasons", StatusClass::ClientError);
-        test_status_code(Status::InternalServerError, 500, "Internal Server Error", StatusClass::ServerError);
-        test_status_code(Status::NotImplemented, 501, "Not Implemented", StatusClass::ServerError);
-        test_status_code(Status::BadGateway, 502, "Bad Gateway", StatusClass::ServerError);
-        test_status_code(Status::ServiceUnavailable, 503, "Service Unavailable", StatusClass::ServerError);
-        test_status_code(Status::GatewayTimeout, 504, "Gateway Timeout", StatusClass::ServerError);
-        test_status_code(Status::HttpVersionNotSupported, 505, "HTTP Version Not Supported", StatusClass::ServerError);
-        test_status_code(Status::VariantAlsoNegotiates, 506, "Variant Also Negotiates", StatusClass::ServerError);
-        test_status_code(Status::InsufficientStorage, 507, "Insufficient Storage", StatusClass::ServerError);
-        test_status_code(Status::LoopDetected, 508, "Loop Detected", StatusClass::ServerError);
-        test_status_code(Status::NotExtended, 510, "Not Extended", StatusClass::ServerError);
-        test_status_code(Status::NetworkAuthenticationRequired, 511, "Network Authentication Required", StatusClass::ServerError);
+        test_status_code(StatusCode::Continue, 100, "Continue", StatusClass::Informational);
+        test_status_code(StatusCode::SwitchingProtocols, 101, "Switching Protocols", StatusClass::Informational);
+        test_status_code(StatusCode::Processing, 102, "Processing", StatusClass::Informational);
+        test_status_code(StatusCode::Ok, 200, "OK", StatusClass::Success);
+        test_status_code(StatusCode::Created, 201, "Created", StatusClass::Success);
+        test_status_code(StatusCode::Accepted, 202, "Accepted", StatusClass::Success);
+        test_status_code(StatusCode::NonAuthoritativeInformation, 203, "Non-Authoritative Information", StatusClass::Success);
+        test_status_code(StatusCode::NoContent, 204, "No Content", StatusClass::Success);
+        test_status_code(StatusCode::ResetContent, 205, "Reset Content", StatusClass::Success);
+        test_status_code(StatusCode::PartialContent, 206, "Partial Content", StatusClass::Success);
+        test_status_code(StatusCode::MultiStatus, 207, "Multi-Status", StatusClass::Success);
+        test_status_code(StatusCode::AlreadyReported, 208, "Already Reported", StatusClass::Success);
+        test_status_code(StatusCode::ImUsed, 226, "IM Used", StatusClass::Success);
+        test_status_code(StatusCode::MultipleChoices, 300, "Multiple Choices", StatusClass::Redirection);
+        test_status_code(StatusCode::MovedPermanently, 301, "Moved Permanently", StatusClass::Redirection);
+        test_status_code(StatusCode::Found, 302, "Found", StatusClass::Redirection);
+        test_status_code(StatusCode::SeeOther, 303, "See Other", StatusClass::Redirection);
+        test_status_code(StatusCode::NotModified, 304, "Not Modified", StatusClass::Redirection);
+        test_status_code(StatusCode::UseProxy, 305, "Use Proxy", StatusClass::Redirection);
+        test_status_code(StatusCode::TemporaryRedirect, 307, "Temporary Redirect", StatusClass::Redirection);
+        test_status_code(StatusCode::PermanentRedirect, 308, "Permanent Redirect", StatusClass::Redirection);
+        test_status_code(StatusCode::BadRequest, 400, "Bad Request", StatusClass::ClientError);
+        test_status_code(StatusCode::Unauthorized, 401, "Unauthorized", StatusClass::ClientError);
+        test_status_code(StatusCode::PaymentRequired, 402, "Payment Required", StatusClass::ClientError);
+        test_status_code(StatusCode::Forbidden, 403, "Forbidden", StatusClass::ClientError);
+        test_status_code(StatusCode::NotFound, 404, "Not Found", StatusClass::ClientError);
+        test_status_code(StatusCode::MethodNotAllowed, 405, "Method Not Allowed", StatusClass::ClientError);
+        test_status_code(StatusCode::NotAcceptable, 406, "Not Acceptable", StatusClass::ClientError);
+        test_status_code(StatusCode::ProxyAuthenticationRequired, 407, "Proxy Authentication Required", StatusClass::ClientError);
+        test_status_code(StatusCode::RequestTimeout, 408, "Request Timeout", StatusClass::ClientError);
+        test_status_code(StatusCode::Conflict, 409, "Conflict", StatusClass::ClientError);
+        test_status_code(StatusCode::Gone, 410, "Gone", StatusClass::ClientError);
+        test_status_code(StatusCode::LengthRequired, 411, "Length Required", StatusClass::ClientError);
+        test_status_code(StatusCode::PreconditionFailed, 412, "Precondition Failed", StatusClass::ClientError);
+        test_status_code(StatusCode::PayloadTooLarge, 413, "Payload Too Large", StatusClass::ClientError);
+        test_status_code(StatusCode::UriTooLong, 414, "URI Too Long", StatusClass::ClientError);
+        test_status_code(StatusCode::UnsupportedMediaType, 415, "Unsupported Media Type", StatusClass::ClientError);
+        test_status_code(StatusCode::RangeNotSatisfiable, 416, "Range Not Satisfiable", StatusClass::ClientError);
+        test_status_code(StatusCode::ExpectationFailed, 417, "Expectation Failed", StatusClass::ClientError);
+        test_status_code(StatusCode::MisdirectedRequest, 421, "Misdirected Request", StatusClass::ClientError);
+        test_status_code(StatusCode::UnprocessableEntity, 422, "Unprocessable Entity", StatusClass::ClientError);
+        test_status_code(StatusCode::Locked, 423, "Locked", StatusClass::ClientError);
+        test_status_code(StatusCode::FailedDependency, 424, "Failed Dependency", StatusClass::ClientError);
+        test_status_code(StatusCode::UpgradeRequired, 426, "Upgrade Required", StatusClass::ClientError);
+        test_status_code(StatusCode::PreconditionRequired, 428, "Precondition Required", StatusClass::ClientError);
+        test_status_code(StatusCode::TooManyRequests, 429, "Too Many Requests", StatusClass::ClientError);
+        test_status_code(StatusCode::RequestHeaderFieldsTooLarge, 431, "Request Header Fields Too Large", StatusClass::ClientError);
+        test_status_code(StatusCode::UnavailableForLegalReasons, 451, "Unavailable For Legal Reasons", StatusClass::ClientError);
+        test_status_code(StatusCode::InternalServerError, 500, "Internal Server Error", StatusClass::ServerError);
+        test_status_code(StatusCode::NotImplemented, 501, "Not Implemented", StatusClass::ServerError);
+        test_status_code(StatusCode::BadGateway, 502, "Bad Gateway", StatusClass::ServerError);
+        test_status_code(StatusCode::ServiceUnavailable, 503, "Service Unavailable", StatusClass::ServerError);
+        test_status_code(StatusCode::GatewayTimeout, 504, "Gateway Timeout", StatusClass::ServerError);
+        test_status_code(StatusCode::HttpVersionNotSupported, 505, "HTTP Version Not Supported", StatusClass::ServerError);
+        test_status_code(StatusCode::VariantAlsoNegotiates, 506, "Variant Also Negotiates", StatusClass::ServerError);
+        test_status_code(StatusCode::InsufficientStorage, 507, "Insufficient Storage", StatusClass::ServerError);
+        test_status_code(StatusCode::LoopDetected, 508, "Loop Detected", StatusClass::ServerError);
+        test_status_code(StatusCode::NotExtended, 510, "Not Extended", StatusClass::ServerError);
+        test_status_code(StatusCode::NetworkAuthenticationRequired, 511, "Network Authentication Required", StatusClass::ServerError);
     }
 
-    fn test_status_code(status: Status, value: u16, reason_phrase: &str, class: StatusClass) {
+    fn test_status_code(status: StatusCode, value: u16, reason_phrase: &str, class: StatusClass) {
         assert_eq!(status, value.into());
-        assert_eq!(status, Status::from_u16(value));
-        assert_eq!(status, Status::from(value));
+        assert_eq!(status, StatusCode::from_u16(value));
+        assert_eq!(status, StatusCode::from(value));
         assert_eq!(value, status.into());
         assert_eq!(value, status.to_u16());
         assert_eq!(class, status.class());
