@@ -1,4 +1,5 @@
 use std::collections::BTreeSet;
+use std::fmt;
 
 /// # Examples
 ///
@@ -108,6 +109,18 @@ pub enum Dnt {
     Unspecified
 }
 
+impl fmt::Display for Dnt {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let value = match *self {
+            Dnt::Disabled => "0",
+            Dnt::Enabled => "1",
+            Dnt::Unspecified => ""
+        };
+
+        write!(f, "{}", value)
+    }
+}
+
 #[derive(PartialEq, Eq, Debug)]
 pub struct DntHeader {
     value: Dnt
@@ -201,5 +214,12 @@ mod test {
 
             assert!(ua.is_none());
         }
+    }
+
+    #[test]
+    fn test_dnt() {
+        assert_eq!("0", format!("{}", Dnt::Disabled));
+        assert_eq!("1", format!("{}", Dnt::Enabled));
+        assert_eq!("", format!("{}", Dnt::Unspecified));
     }
 }
