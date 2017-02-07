@@ -55,6 +55,7 @@ pub trait TypedHeader: Eq + Sized {
     /// Converts a list of raw values to a `TypedHeader`
     /// The list is required for headers like `Set-Cookie` which might appear multiple times in a response.
     /// Other headers might only use the first value of `raw` and ignore the rest
+    // TODO: consider using Result instead of Option (however we still need to be able to represent the absence of a header)
     fn parse(raw: &[&RawHeader]) -> Option<Self>;
 
     /// Returns the raw values of this header.
