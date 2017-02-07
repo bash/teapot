@@ -178,7 +178,7 @@ pub enum StatusCode {
     /// [RFC6585](http://www.iana.org/go/rfc6585)
     NetworkAuthenticationRequired,
     /// Catch-all for unregistered status codes
-    Unregistered(u16)
+    Unregistered(u16),
 }
 
 #[derive(PartialEq, Eq, Debug, Clone, Copy)]
@@ -194,7 +194,7 @@ pub enum StatusClass {
     /// 5xx: Server Error - The server failed to fulfill an apparently valid request
     ServerError,
     /// Catch-All for everything outside the defined classes
-    None
+    None,
 }
 
 impl StatusCode {
@@ -259,7 +259,7 @@ impl StatusCode {
             508 => StatusCode::LoopDetected,
             510 => StatusCode::NotExtended,
             511 => StatusCode::NetworkAuthenticationRequired,
-            _ => StatusCode::Unregistered(value)
+            _ => StatusCode::Unregistered(value),
         }
     }
 
@@ -324,18 +324,18 @@ impl StatusCode {
             StatusCode::LoopDetected => 508,
             StatusCode::NotExtended => 510,
             StatusCode::NetworkAuthenticationRequired => 511,
-            StatusCode::Unregistered(value) => value
+            StatusCode::Unregistered(value) => value,
         }
     }
 
     pub fn class(&self) -> StatusClass {
         match self.to_u16() {
-            100 ... 199 => StatusClass::Informational,
-            200 ... 299 => StatusClass::Success,
-            300 ... 399 => StatusClass::Redirection,
-            400 ... 499 => StatusClass::ClientError,
-            500 ... 599 => StatusClass::ServerError,
-            _ => StatusClass::None
+            100...199 => StatusClass::Informational,
+            200...299 => StatusClass::Success,
+            300...399 => StatusClass::Redirection,
+            400...499 => StatusClass::ClientError,
+            500...599 => StatusClass::ServerError,
+            _ => StatusClass::None,
         }
     }
 
@@ -400,7 +400,7 @@ impl StatusCode {
             StatusCode::LoopDetected => Some("Loop Detected"),
             StatusCode::NotExtended => Some("Not Extended"),
             StatusCode::NetworkAuthenticationRequired => Some("Network Authentication Required"),
-            _ => None
+            _ => None,
         }
     }
 
@@ -453,65 +453,221 @@ mod test {
 
     #[test]
     fn test_registered_statuses() {
-        test_status_code(StatusCode::Continue, 100, "Continue", StatusClass::Informational);
-        test_status_code(StatusCode::SwitchingProtocols, 101, "Switching Protocols", StatusClass::Informational);
-        test_status_code(StatusCode::Processing, 102, "Processing", StatusClass::Informational);
+        test_status_code(StatusCode::Continue,
+                         100,
+                         "Continue",
+                         StatusClass::Informational);
+        test_status_code(StatusCode::SwitchingProtocols,
+                         101,
+                         "Switching Protocols",
+                         StatusClass::Informational);
+        test_status_code(StatusCode::Processing,
+                         102,
+                         "Processing",
+                         StatusClass::Informational);
         test_status_code(StatusCode::Ok, 200, "OK", StatusClass::Success);
         test_status_code(StatusCode::Created, 201, "Created", StatusClass::Success);
         test_status_code(StatusCode::Accepted, 202, "Accepted", StatusClass::Success);
-        test_status_code(StatusCode::NonAuthoritativeInformation, 203, "Non-Authoritative Information", StatusClass::Success);
-        test_status_code(StatusCode::NoContent, 204, "No Content", StatusClass::Success);
-        test_status_code(StatusCode::ResetContent, 205, "Reset Content", StatusClass::Success);
-        test_status_code(StatusCode::PartialContent, 206, "Partial Content", StatusClass::Success);
-        test_status_code(StatusCode::MultiStatus, 207, "Multi-Status", StatusClass::Success);
-        test_status_code(StatusCode::AlreadyReported, 208, "Already Reported", StatusClass::Success);
+        test_status_code(StatusCode::NonAuthoritativeInformation,
+                         203,
+                         "Non-Authoritative Information",
+                         StatusClass::Success);
+        test_status_code(StatusCode::NoContent,
+                         204,
+                         "No Content",
+                         StatusClass::Success);
+        test_status_code(StatusCode::ResetContent,
+                         205,
+                         "Reset Content",
+                         StatusClass::Success);
+        test_status_code(StatusCode::PartialContent,
+                         206,
+                         "Partial Content",
+                         StatusClass::Success);
+        test_status_code(StatusCode::MultiStatus,
+                         207,
+                         "Multi-Status",
+                         StatusClass::Success);
+        test_status_code(StatusCode::AlreadyReported,
+                         208,
+                         "Already Reported",
+                         StatusClass::Success);
         test_status_code(StatusCode::ImUsed, 226, "IM Used", StatusClass::Success);
-        test_status_code(StatusCode::MultipleChoices, 300, "Multiple Choices", StatusClass::Redirection);
-        test_status_code(StatusCode::MovedPermanently, 301, "Moved Permanently", StatusClass::Redirection);
+        test_status_code(StatusCode::MultipleChoices,
+                         300,
+                         "Multiple Choices",
+                         StatusClass::Redirection);
+        test_status_code(StatusCode::MovedPermanently,
+                         301,
+                         "Moved Permanently",
+                         StatusClass::Redirection);
         test_status_code(StatusCode::Found, 302, "Found", StatusClass::Redirection);
-        test_status_code(StatusCode::SeeOther, 303, "See Other", StatusClass::Redirection);
-        test_status_code(StatusCode::NotModified, 304, "Not Modified", StatusClass::Redirection);
-        test_status_code(StatusCode::UseProxy, 305, "Use Proxy", StatusClass::Redirection);
-        test_status_code(StatusCode::TemporaryRedirect, 307, "Temporary Redirect", StatusClass::Redirection);
-        test_status_code(StatusCode::PermanentRedirect, 308, "Permanent Redirect", StatusClass::Redirection);
-        test_status_code(StatusCode::BadRequest, 400, "Bad Request", StatusClass::ClientError);
-        test_status_code(StatusCode::Unauthorized, 401, "Unauthorized", StatusClass::ClientError);
-        test_status_code(StatusCode::PaymentRequired, 402, "Payment Required", StatusClass::ClientError);
-        test_status_code(StatusCode::Forbidden, 403, "Forbidden", StatusClass::ClientError);
-        test_status_code(StatusCode::NotFound, 404, "Not Found", StatusClass::ClientError);
-        test_status_code(StatusCode::MethodNotAllowed, 405, "Method Not Allowed", StatusClass::ClientError);
-        test_status_code(StatusCode::NotAcceptable, 406, "Not Acceptable", StatusClass::ClientError);
-        test_status_code(StatusCode::ProxyAuthenticationRequired, 407, "Proxy Authentication Required", StatusClass::ClientError);
-        test_status_code(StatusCode::RequestTimeout, 408, "Request Timeout", StatusClass::ClientError);
-        test_status_code(StatusCode::Conflict, 409, "Conflict", StatusClass::ClientError);
+        test_status_code(StatusCode::SeeOther,
+                         303,
+                         "See Other",
+                         StatusClass::Redirection);
+        test_status_code(StatusCode::NotModified,
+                         304,
+                         "Not Modified",
+                         StatusClass::Redirection);
+        test_status_code(StatusCode::UseProxy,
+                         305,
+                         "Use Proxy",
+                         StatusClass::Redirection);
+        test_status_code(StatusCode::TemporaryRedirect,
+                         307,
+                         "Temporary Redirect",
+                         StatusClass::Redirection);
+        test_status_code(StatusCode::PermanentRedirect,
+                         308,
+                         "Permanent Redirect",
+                         StatusClass::Redirection);
+        test_status_code(StatusCode::BadRequest,
+                         400,
+                         "Bad Request",
+                         StatusClass::ClientError);
+        test_status_code(StatusCode::Unauthorized,
+                         401,
+                         "Unauthorized",
+                         StatusClass::ClientError);
+        test_status_code(StatusCode::PaymentRequired,
+                         402,
+                         "Payment Required",
+                         StatusClass::ClientError);
+        test_status_code(StatusCode::Forbidden,
+                         403,
+                         "Forbidden",
+                         StatusClass::ClientError);
+        test_status_code(StatusCode::NotFound,
+                         404,
+                         "Not Found",
+                         StatusClass::ClientError);
+        test_status_code(StatusCode::MethodNotAllowed,
+                         405,
+                         "Method Not Allowed",
+                         StatusClass::ClientError);
+        test_status_code(StatusCode::NotAcceptable,
+                         406,
+                         "Not Acceptable",
+                         StatusClass::ClientError);
+        test_status_code(StatusCode::ProxyAuthenticationRequired,
+                         407,
+                         "Proxy Authentication Required",
+                         StatusClass::ClientError);
+        test_status_code(StatusCode::RequestTimeout,
+                         408,
+                         "Request Timeout",
+                         StatusClass::ClientError);
+        test_status_code(StatusCode::Conflict,
+                         409,
+                         "Conflict",
+                         StatusClass::ClientError);
         test_status_code(StatusCode::Gone, 410, "Gone", StatusClass::ClientError);
-        test_status_code(StatusCode::LengthRequired, 411, "Length Required", StatusClass::ClientError);
-        test_status_code(StatusCode::PreconditionFailed, 412, "Precondition Failed", StatusClass::ClientError);
-        test_status_code(StatusCode::PayloadTooLarge, 413, "Payload Too Large", StatusClass::ClientError);
-        test_status_code(StatusCode::UriTooLong, 414, "URI Too Long", StatusClass::ClientError);
-        test_status_code(StatusCode::UnsupportedMediaType, 415, "Unsupported Media Type", StatusClass::ClientError);
-        test_status_code(StatusCode::RangeNotSatisfiable, 416, "Range Not Satisfiable", StatusClass::ClientError);
-        test_status_code(StatusCode::ExpectationFailed, 417, "Expectation Failed", StatusClass::ClientError);
-        test_status_code(StatusCode::MisdirectedRequest, 421, "Misdirected Request", StatusClass::ClientError);
-        test_status_code(StatusCode::UnprocessableEntity, 422, "Unprocessable Entity", StatusClass::ClientError);
+        test_status_code(StatusCode::LengthRequired,
+                         411,
+                         "Length Required",
+                         StatusClass::ClientError);
+        test_status_code(StatusCode::PreconditionFailed,
+                         412,
+                         "Precondition Failed",
+                         StatusClass::ClientError);
+        test_status_code(StatusCode::PayloadTooLarge,
+                         413,
+                         "Payload Too Large",
+                         StatusClass::ClientError);
+        test_status_code(StatusCode::UriTooLong,
+                         414,
+                         "URI Too Long",
+                         StatusClass::ClientError);
+        test_status_code(StatusCode::UnsupportedMediaType,
+                         415,
+                         "Unsupported Media Type",
+                         StatusClass::ClientError);
+        test_status_code(StatusCode::RangeNotSatisfiable,
+                         416,
+                         "Range Not Satisfiable",
+                         StatusClass::ClientError);
+        test_status_code(StatusCode::ExpectationFailed,
+                         417,
+                         "Expectation Failed",
+                         StatusClass::ClientError);
+        test_status_code(StatusCode::MisdirectedRequest,
+                         421,
+                         "Misdirected Request",
+                         StatusClass::ClientError);
+        test_status_code(StatusCode::UnprocessableEntity,
+                         422,
+                         "Unprocessable Entity",
+                         StatusClass::ClientError);
         test_status_code(StatusCode::Locked, 423, "Locked", StatusClass::ClientError);
-        test_status_code(StatusCode::FailedDependency, 424, "Failed Dependency", StatusClass::ClientError);
-        test_status_code(StatusCode::UpgradeRequired, 426, "Upgrade Required", StatusClass::ClientError);
-        test_status_code(StatusCode::PreconditionRequired, 428, "Precondition Required", StatusClass::ClientError);
-        test_status_code(StatusCode::TooManyRequests, 429, "Too Many Requests", StatusClass::ClientError);
-        test_status_code(StatusCode::RequestHeaderFieldsTooLarge, 431, "Request Header Fields Too Large", StatusClass::ClientError);
-        test_status_code(StatusCode::UnavailableForLegalReasons, 451, "Unavailable For Legal Reasons", StatusClass::ClientError);
-        test_status_code(StatusCode::InternalServerError, 500, "Internal Server Error", StatusClass::ServerError);
-        test_status_code(StatusCode::NotImplemented, 501, "Not Implemented", StatusClass::ServerError);
-        test_status_code(StatusCode::BadGateway, 502, "Bad Gateway", StatusClass::ServerError);
-        test_status_code(StatusCode::ServiceUnavailable, 503, "Service Unavailable", StatusClass::ServerError);
-        test_status_code(StatusCode::GatewayTimeout, 504, "Gateway Timeout", StatusClass::ServerError);
-        test_status_code(StatusCode::HttpVersionNotSupported, 505, "HTTP Version Not Supported", StatusClass::ServerError);
-        test_status_code(StatusCode::VariantAlsoNegotiates, 506, "Variant Also Negotiates", StatusClass::ServerError);
-        test_status_code(StatusCode::InsufficientStorage, 507, "Insufficient Storage", StatusClass::ServerError);
-        test_status_code(StatusCode::LoopDetected, 508, "Loop Detected", StatusClass::ServerError);
-        test_status_code(StatusCode::NotExtended, 510, "Not Extended", StatusClass::ServerError);
-        test_status_code(StatusCode::NetworkAuthenticationRequired, 511, "Network Authentication Required", StatusClass::ServerError);
+        test_status_code(StatusCode::FailedDependency,
+                         424,
+                         "Failed Dependency",
+                         StatusClass::ClientError);
+        test_status_code(StatusCode::UpgradeRequired,
+                         426,
+                         "Upgrade Required",
+                         StatusClass::ClientError);
+        test_status_code(StatusCode::PreconditionRequired,
+                         428,
+                         "Precondition Required",
+                         StatusClass::ClientError);
+        test_status_code(StatusCode::TooManyRequests,
+                         429,
+                         "Too Many Requests",
+                         StatusClass::ClientError);
+        test_status_code(StatusCode::RequestHeaderFieldsTooLarge,
+                         431,
+                         "Request Header Fields Too Large",
+                         StatusClass::ClientError);
+        test_status_code(StatusCode::UnavailableForLegalReasons,
+                         451,
+                         "Unavailable For Legal Reasons",
+                         StatusClass::ClientError);
+        test_status_code(StatusCode::InternalServerError,
+                         500,
+                         "Internal Server Error",
+                         StatusClass::ServerError);
+        test_status_code(StatusCode::NotImplemented,
+                         501,
+                         "Not Implemented",
+                         StatusClass::ServerError);
+        test_status_code(StatusCode::BadGateway,
+                         502,
+                         "Bad Gateway",
+                         StatusClass::ServerError);
+        test_status_code(StatusCode::ServiceUnavailable,
+                         503,
+                         "Service Unavailable",
+                         StatusClass::ServerError);
+        test_status_code(StatusCode::GatewayTimeout,
+                         504,
+                         "Gateway Timeout",
+                         StatusClass::ServerError);
+        test_status_code(StatusCode::HttpVersionNotSupported,
+                         505,
+                         "HTTP Version Not Supported",
+                         StatusClass::ServerError);
+        test_status_code(StatusCode::VariantAlsoNegotiates,
+                         506,
+                         "Variant Also Negotiates",
+                         StatusClass::ServerError);
+        test_status_code(StatusCode::InsufficientStorage,
+                         507,
+                         "Insufficient Storage",
+                         StatusClass::ServerError);
+        test_status_code(StatusCode::LoopDetected,
+                         508,
+                         "Loop Detected",
+                         StatusClass::ServerError);
+        test_status_code(StatusCode::NotExtended,
+                         510,
+                         "Not Extended",
+                         StatusClass::ServerError);
+        test_status_code(StatusCode::NetworkAuthenticationRequired,
+                         511,
+                         "Network Authentication Required",
+                         StatusClass::ServerError);
     }
 
     fn test_status_code(status: StatusCode, value: u16, reason_phrase: &str, class: StatusClass) {
