@@ -22,6 +22,10 @@ use std::fmt;
 ///         "user-agent"
 ///     }
 ///
+///     fn canonical_name() -> &'static str {
+///        "User-Agent"
+///     }
+///
 ///     fn parse(raw: &[&RawHeader]) -> Option<Self> {
 ///         if raw.len() == 0 {
 ///             return None;
@@ -29,17 +33,46 @@ use std::fmt;
 ///
 ///         Some(UserAgentHeader { value: raw[0].value().to_string() })
 ///     }
+///
+///     fn raw_values(&self) -> Vec<String> {
+///       vec![format!("{}", self.value)]
+///     }
 /// }
 /// ```
 pub trait TypedHeader: Eq + Sized {
     /// This is the name of the header in lower case.
-    /// It is used by `Headers` to look up the raw header(s).
+    /// It is used in [`Headers`] to look up the raw header(s).
+    ///
+    /// [`Headers`]: struct.Headers.html#method.get
     fn name() -> &'static str;
+
+    /// This is the name of the header in its canonical form.
+    /// Used by [`as_raw`] as the header name.
+    ///
+    /// [`as_raw`]: trait.TypedHeader.html#method.as_raw
+    fn canonical_name() -> &'static str;
 
     /// Converts a list of raw values to a `TypedHeader`
     /// The list is required for headers like `Set-Cookie` which might appear multiple times in a response.
     /// Other headers might only use the first value of `raw` and ignore the rest
     fn parse(raw: &[&RawHeader]) -> Option<Self>;
+
+    /// Returns the raw values of this header.
+    /// Used by [`as_raw`] as the header value.
+    /// When multiple values are returned, [`as_raw`] will return multiple raw headers for each value.
+    ///
+    /// [`as_raw`]: trait.TypedHeader.html#method.as_raw
+    fn raw_values(&self) -> Vec<String>;
+
+    /// Converts the header back to one or more [`RawHeader`]s
+    ///
+    /// [`RawHeader`]: struct.RawHeader.html
+    fn as_raw(&self) -> Vec<RawHeader> {
+        self.raw_values()
+            .iter()
+            .map(|value| RawHeader::new(Self::canonical_name(), &value))
+            .collect()
+    }
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
@@ -137,7 +170,11 @@ impl DntHeader {
 
 impl TypedHeader for DntHeader {
     fn name() -> &'static str {
-        return "dnt"
+        "dnt"
+    }
+
+    fn canonical_name() -> &'static str {
+        "DNT"
     }
 
     fn parse(raw: &[&RawHeader]) -> Option<Self> {
@@ -152,6 +189,10 @@ impl TypedHeader for DntHeader {
         };
 
         Some(DntHeader { value: value })
+    }
+
+    fn raw_values(&self) -> Vec<String> {
+        vec![format!("{}", self.value)]
     }
 }
 
@@ -171,12 +212,20 @@ impl TypedHeader for UserAgentHeader {
         "user-agent"
     }
 
+    fn canonical_name() -> &'static str {
+        "User-Agent"
+    }
+
     fn parse(raw: &[&RawHeader]) -> Option<Self> {
         if raw.len() == 0 {
             return None;
         }
 
         Some(UserAgentHeader { value: raw[0].value().to_string() })
+    }
+
+    fn raw_values(&self) -> Vec<String> {
+        vec![self.value.clone()]
     }
 }
 
