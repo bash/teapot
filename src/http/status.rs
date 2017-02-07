@@ -1,3 +1,5 @@
+use std::fmt;
+
 #[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub enum StatusCode {
     /// 100 Continue
@@ -441,13 +443,22 @@ impl From<u16> for StatusCode {
     }
 }
 
+impl fmt::Display for StatusCode {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self.canonical_reason() {
+            Some(reason) => write!(f, "{} {}", self.to_u16(), reason),
+            None => write!(f, "{}", self.to_u16()),
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
 
     #[test]
     fn test_unregistered_status() {
-        assert!(StatusCode::Unregistered(612).reason_phrase().is_none());
+        assert!(StatusCode::Unregistered(612).canonical_reason().is_none());
         assert_eq!(StatusClass::None, StatusCode::Unregistered(612).class());
     }
 
@@ -678,5 +689,7 @@ mod test {
         assert_eq!(value, status.to_u16());
         assert_eq!(class, status.class());
         assert_eq!(reason_phrase, status.canonical_reason().unwrap());
+        assert_eq!(format!("{} {}", value, reason_phrase),
+                   format!("{}", status));
     }
 }
