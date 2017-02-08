@@ -79,7 +79,7 @@ pub trait TypedHeader: Eq + Sized {
     }
 }
 
-#[derive(PartialEq, Eq, PartialOrd, Ord)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub struct RawHeader {
     name: String,
     value: String,
