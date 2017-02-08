@@ -1,5 +1,8 @@
 use std::collections::BTreeSet;
 use std::fmt;
+use std::io::Read;
+use super::parse::headers::parse_headers;
+pub use super::parse::headers::ParseError;
 
 /// # Examples
 ///
@@ -93,12 +96,6 @@ impl RawHeader {
         }
     }
 
-    pub fn parse<S: Into<String>>(raw: S) -> Self {
-        let raw = raw.into();
-
-        RawHeader::new("foo", "bar")
-    }
-
     pub fn lower_name<'a>(&'a self) -> String {
         self.name.to_lowercase()
     }
@@ -131,6 +128,10 @@ pub struct Headers {
 impl Headers {
     pub fn new() -> Self {
         Headers { headers: BTreeSet::new() }
+    }
+
+    pub fn parse<R: Read>(input: R) -> Result<Self, ParseError> {
+        parse_headers(input)
     }
 
     pub fn append<H: TypedHeader>(&mut self, header: H) {
