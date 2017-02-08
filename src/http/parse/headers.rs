@@ -2,7 +2,7 @@ use std::io::Read;
 use std::string::FromUtf8Error;
 
 use super::super::lines::{Lines, LinesError};
-use super::super::headers::RawHeader;
+use super::super::headers::{Headers, RawHeader};
 use super::{is_token, is_whitespace, is_control};
 
 const ASCII_COLON: u8 = 58;
@@ -40,7 +40,7 @@ impl From<FromUtf8Error> for ParseError {
 #[derive(Debug)]
 pub struct Parser {
     state: ParseState,
-    headers: Vec<RawHeader>,
+    headers: Headers,
     name: Vec<u8>,
     value: Vec<u8>,
 }
@@ -49,7 +49,7 @@ impl Parser {
     pub fn new() -> Self {
         Parser {
             state: ParseState::BeforeName,
-            headers: vec![],
+            headers: Headers::new(),
             name: vec![],
             value: vec![],
         }
@@ -62,9 +62,7 @@ impl Parser {
     // TODO: use dedicated iterator that stops on \r\n\r\n instead of `Lines`
     pub fn parse<T: Read>(&mut self, input: Lines<T>) -> Result<(), ParseError> {
         for line in input {
-            let line = line?;
-
-            for byte in line {
+            for byte in line? {
                 match self.process(byte) {
                     Ok(state) => self.state = state,
                     Err(err) => return Err(err),
@@ -98,7 +96,8 @@ impl Parser {
         let name = self.name.clone();
         let value = self.value.clone();
 
-        self.headers.push(RawHeader::new(String::from_utf8(name)?, String::from_utf8(value)?));
+        self.headers
+            .append_raw(RawHeader::new(String::from_utf8(name)?, String::from_utf8(value)?));
 
         self.name = vec![];
         self.value = vec![];

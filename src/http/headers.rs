@@ -122,6 +122,7 @@ impl RawHeader {
 ///
 /// assert_eq!(Dnt::Unspecified, dnt.value());
 /// ```
+#[derive(Debug)]
 pub struct Headers {
     headers: BTreeSet<RawHeader>,
 }
