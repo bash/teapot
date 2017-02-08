@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Headers` struct in crate `teapot`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Headers">
+
+    <title>teapot::http::headers::Headers - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'><a href='../../index.html'>teapot</a>::<wbr><a href='../index.html'>http</a>::<wbr><a href='index.html'>headers</a></p><script>window.sidebarCurrent = {name: 'Headers', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content struct">
+<h1 class='fqn'><span class='in-band'>Struct <a href='../../index.html'>teapot</a>::<wbr><a href='../index.html'>http</a>::<wbr><a href='index.html'>headers</a>::<wbr><a class='struct' href=''>Headers</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../../../src/teapot/http/headers.rs.html#125-127' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct Headers { /* fields omitted */ }</pre><div class='docblock'>
+<h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1>
+<pre class='rust rust-example-rendered'>
+<span class='kw'>use</span> <span class='ident'>teapot</span>::<span class='ident'>http</span>::<span class='ident'>headers</span>::{<span class='ident'>Headers</span>, <span class='ident'>DntHeader</span>, <span class='ident'>Dnt</span>};
+
+<span class='kw'>let</span> <span class='ident'>headers</span> <span class='op'>=</span> <span class='ident'>Headers</span>::<span class='ident'>new</span>();
+<span class='kw'>let</span> <span class='ident'>dnt</span> : <span class='ident'>DntHeader</span> <span class='op'>=</span> <span class='ident'>headers</span>.<span class='ident'>get</span>().<span class='ident'>unwrap</span>();
+
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>Dnt</span>::<span class='ident'>Unspecified</span>, <span class='ident'>dnt</span>.<span class='ident'>value</span>());</pre>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl <a class='struct' href='../../../teapot/http/headers/struct.Headers.html' title='teapot::http::headers::Headers'>Headers</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../../src/teapot/http/headers.rs.html#130-158' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.new' class='method'><span id='new.v' class='invisible'><code>fn <a href='#method.new' class='fnname'>new</a>() -&gt; Self</code></span></h4>
+<h4 id='method.append' class='method'><span id='append.v' class='invisible'><code>fn <a href='#method.append' class='fnname'>append</a>&lt;H:&nbsp;<a class='trait' href='../../../teapot/http/headers/trait.TypedHeader.html' title='teapot::http::headers::TypedHeader'>TypedHeader</a>&gt;(&amp;mut self, header: H)</code></span></h4>
+<h4 id='method.append_raw' class='method'><span id='append_raw.v' class='invisible'><code>fn <a href='#method.append_raw' class='fnname'>append_raw</a>(&amp;mut self, header: <a class='struct' href='../../../teapot/http/headers/struct.RawHeader.html' title='teapot::http::headers::RawHeader'>RawHeader</a>)</code></span></h4>
+<h4 id='method.get' class='method'><span id='get.v' class='invisible'><code>fn <a href='#method.get' class='fnname'>get</a>&lt;H:&nbsp;<a class='trait' href='../../../teapot/http/headers/trait.TypedHeader.html' title='teapot::http::headers::TypedHeader'>TypedHeader</a>&gt;(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;H&gt;</code></span></h4>
+<h4 id='method.get_raw' class='method'><span id='get_raw.v' class='invisible'><code>fn <a href='#method.get_raw' class='fnname'>get_raw</a>(&amp;self, name: &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;&amp;<a class='struct' href='../../../teapot/http/headers/struct.RawHeader.html' title='teapot::http::headers::RawHeader'>RawHeader</a>&gt;</code></span></h4>
+</div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../../";
+        window.currentCrate = "teapot";
+    </script>
+    <script src="../../../jquery.js"></script>
+    <script src="../../../main.js"></script>
+    <script defer src="../../../search-index.js"></script>
+</body>
+</html>
