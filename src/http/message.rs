@@ -2,7 +2,7 @@ use std::io::Read;
 use std::convert::From;
 use std::string::FromUtf8Error;
 use super::lines::{ReadLines, LinesError};
-use super::headers::{Headers, RawHeader, ParseError as HeaderParseError};
+use super::headers::{Headers, ParseError as HeaderParseError};
 
 #[derive(Debug)]
 pub enum ParseError {
@@ -32,13 +32,13 @@ impl From<LinesError> for ParseError {
     }
 }
 
-pub struct Message<'a> {
+pub struct Message<'a, R: Read + 'a> {
     start_line: String,
     headers: Headers,
-    body: &'a Read,
+    body: &'a R,
 }
 
-impl<'a> Message<'a> {
+impl<'a, R: Read + 'a> Message<'a, R> {
     pub fn start_line(&self) -> &String {
         &self.start_line
     }
@@ -47,7 +47,11 @@ impl<'a> Message<'a> {
         &self.headers
     }
 
-    pub fn new<S: Into<String>>(start_line: S, headers: Headers, body: &'a Read) -> Self {
+    pub fn body(&'a self) -> &'a R {
+        &self.body
+    }
+
+    pub fn new<S: Into<String>>(start_line: S, headers: Headers, body: &'a R) -> Self {
         Message {
             start_line: start_line.into(),
             headers: headers,
@@ -55,7 +59,7 @@ impl<'a> Message<'a> {
         }
     }
 
-    pub fn parse(buffer: &mut Read) -> Result<Message, ParseError> {
+    pub fn parse(buffer: &mut R) -> Result<Message<R>, ParseError> {
         let start_line = {
             let mut lines = buffer.lines();
 
@@ -94,7 +98,7 @@ mod test {
 
         {
             let mut body = String::new();
-            bytes.read_to_string(&mut body);
+            bytes.read_to_string(&mut body).unwrap();
             assert_eq!("Foo", body);
         }
     }
