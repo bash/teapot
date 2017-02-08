@@ -1,8 +1,8 @@
+use std;
 use std::io::Read;
 use std::string::FromUtf8Error;
-use std::mem::replace;
 
-use super::super::lines::{Lines, LinesError};
+use super::super::lines::{ReadLines, LinesError};
 use super::super::headers::{Headers, RawHeader};
 use super::{is_token, is_whitespace, is_control};
 
@@ -10,7 +10,7 @@ const ASCII_COLON: u8 = 58;
 const ASCII_COMMA: u8 = 44;
 
 #[derive(Debug, PartialEq, Eq)]
-enum State {
+enum Pos {
     BeforeName,
     Name,
     NewLine,
@@ -18,6 +18,7 @@ enum State {
     Value,
 }
 
+#[derive(Debug)]
 enum Op {
     None,
     AppendName(u8),
@@ -25,77 +26,20 @@ enum Op {
 }
 
 #[derive(Debug)]
-pub enum ParseError {
-    UnexpectedCharacterError(u8),
-    LineParseError(LinesError),
-    FromUtf8Error(FromUtf8Error),
-}
-
-type ParseResult = Result<(Op, State), ParseError>;
-
-impl From<LinesError> for ParseError {
-    fn from(err: LinesError) -> Self {
-        ParseError::LineParseError(err)
-    }
-}
-
-impl From<FromUtf8Error> for ParseError {
-    fn from(err: FromUtf8Error) -> Self {
-        ParseError::FromUtf8Error(err)
-    }
-}
-
-#[derive(Debug)]
-pub struct Parser {
-    state: State,
+struct State {
+    pos: Pos,
     headers: Headers,
     name: Vec<u8>,
     value: Vec<u8>,
 }
 
-impl Parser {
+impl State {
     pub fn new() -> Self {
-        Parser {
-            state: State::BeforeName,
+        State {
+            pos: Pos::BeforeName,
             headers: Headers::new(),
             name: vec![],
             value: vec![],
-        }
-    }
-
-    ///
-    /// Parses message headers according to [`RFC2616 Section 4.2`]
-    ///
-    /// [`RFC2616 Section 4.2`]: https://tools.ietf.org/html/rfc2616#section-4.2
-    // TODO: use dedicated iterator that stops on \r\n\r\n instead of `Lines`
-    pub fn parse<T: Read>(&mut self, input: Lines<T>) -> Result<Headers, ParseError> {
-        for line in input {
-            for byte in line? {
-                let (op, state) = self.process(byte)?;
-
-                if state == State::Name && self.state == State::NewLine {
-                    self.commit()?;
-                }
-
-                self.state = state;
-                self.update(op);
-            }
-
-            self.state = State::NewLine;
-        }
-
-        self.commit()?;
-
-        Ok(replace(&mut self.headers, Headers::new()))
-    }
-
-    fn process(&self, byte: u8) -> ParseResult {
-        match self.state {
-            State::BeforeName => self.before_name(byte),
-            State::Name => self.name(byte),
-            State::BeforeValue => self.before_value(byte),
-            State::Value => self.value(byte),
-            State::NewLine => self.new_line(byte),
         }
     }
 
@@ -112,58 +56,117 @@ impl Parser {
             return Ok(());
         }
 
-        let mut name = replace(&mut self.name, vec![]);
-        let mut value = replace(&mut self.value, vec![]);
+        let name = std::mem::replace(&mut self.name, vec![]);
+        let value = std::mem::replace(&mut self.value, vec![]);
 
         self.headers.append_raw(RawHeader::new(String::from_utf8(name)?, String::from_utf8(value)?));
 
         Ok(())
     }
+}
 
-    fn before_name(&self, byte: u8) -> ParseResult {
-        self.consume_name(byte)
+#[derive(Debug)]
+pub enum ParseError {
+    UnexpectedCharacterError(u8),
+    LineParseError(LinesError),
+    FromUtf8Error(FromUtf8Error),
+}
+
+type ParseResult = Result<(Op, Pos), ParseError>;
+
+impl From<LinesError> for ParseError {
+    fn from(err: LinesError) -> Self {
+        ParseError::LineParseError(err)
     }
+}
 
-    fn name(&self, byte: u8) -> ParseResult {
-        if byte == ASCII_COLON {
-            return Ok((Op::None, State::BeforeValue));
+impl From<FromUtf8Error> for ParseError {
+    fn from(err: FromUtf8Error) -> Self {
+        ParseError::FromUtf8Error(err)
+    }
+}
+
+///
+/// Parses message headers according to [`RFC2616 Section 4.2`]
+///
+/// [`RFC2616 Section 4.2`]: https://tools.ietf.org/html/rfc2616#section-4.2
+pub fn parse_headers<R: Read>(input: R) -> Result<Headers, ParseError> {
+    let mut state = State::new();
+
+    // TODO: use dedicated iterator that stops on \r\n\r\n instead of `Lines`
+    for line in input.lines() {
+        for byte in line? {
+            let (op, pos) = process(&state, byte)?;
+
+            if pos == Pos::Name && state.pos == Pos::NewLine {
+                state.commit()?;
+            }
+
+            state.pos = pos;
+            state.update(op);
         }
 
-        self.consume_name(byte)
+        state.pos = Pos::NewLine;
     }
 
-    fn consume_name(&self, byte: u8) -> ParseResult {
-        if !is_token(byte) {
-            return Err(ParseError::UnexpectedCharacterError(byte));
-        }
+    state.commit()?;
 
-        Ok((Op::AppendName(byte), State::Name))
+    Ok(state.headers)
+}
+
+fn process(state: &State, byte: u8) -> ParseResult {
+    match state.pos {
+        Pos::BeforeName => before_name(byte),
+        Pos::Name => name(byte),
+        Pos::BeforeValue => before_value(byte),
+        Pos::Value => value(byte),
+        Pos::NewLine => new_line(byte),
+    }
+}
+
+fn before_name(byte: u8) -> ParseResult {
+    consume_name(byte)
+}
+
+fn name(byte: u8) -> ParseResult {
+    if byte == ASCII_COLON {
+        return Ok((Op::None, Pos::BeforeValue));
     }
 
-    fn before_value(&self, byte: u8) -> ParseResult {
-        match is_whitespace(byte) {
-            true => Ok((Op::None, State::BeforeValue)),
-            false => self.consume_value(byte),
-        }
+    consume_name(byte)
+}
+
+fn consume_name(byte: u8) -> ParseResult {
+    if !is_token(byte) {
+        return Err(ParseError::UnexpectedCharacterError(byte));
     }
 
-    fn value(&self, byte: u8) -> ParseResult {
-        self.consume_value(byte)
+    Ok((Op::AppendName(byte), Pos::Name))
+}
+
+fn before_value(byte: u8) -> ParseResult {
+    match is_whitespace(byte) {
+        true => Ok((Op::None, Pos::BeforeValue)),
+        false => consume_value(byte),
+    }
+}
+
+fn value(byte: u8) -> ParseResult {
+    consume_value(byte)
+}
+
+fn consume_value(byte: u8) -> ParseResult {
+    if is_control(byte) {
+        return Err(ParseError::UnexpectedCharacterError(byte));
     }
 
-    fn consume_value(&self, byte: u8) -> ParseResult {
-        if is_control(byte) {
-            return Err(ParseError::UnexpectedCharacterError(byte));
-        }
+    Ok((Op::AppendValue(byte), Pos::Value))
+}
 
-        Ok((Op::AppendValue(byte), State::Value))
-    }
-
-    fn new_line(&self, byte: u8) -> ParseResult {
-        match is_whitespace(byte) {
-            true => Ok((Op::AppendValue(ASCII_COMMA), State::BeforeValue)),
-            false => self.before_name(byte),
-        }
+fn new_line(byte: u8) -> ParseResult {
+    match is_whitespace(byte) {
+        true => Ok((Op::AppendValue(ASCII_COMMA), Pos::BeforeValue)),
+        false => before_name(byte),
     }
 }
 
@@ -174,12 +177,10 @@ mod test {
 
     #[test]
     fn test_parse() {
-        let lines = b"Host: example.com\r\nUser-Agent: curl/7.51.0\r\nAccept: */*".lines();
+        let raw = "Host: example.com\r\nUser-Agent: curl/7.51.0\r\nAccept: */*".as_bytes();
+        let headers = parse_headers(raw).unwrap();
 
-        let mut parser = Parser::new();
-        let headers = parser.parse(lines).unwrap();
-
-        let host = headers.get_raw("host")[0];
+        let host = headers.get_craw("host")[0];
         assert_eq!("Host", host.name());
         assert_eq!("example.com", host.value());
 
