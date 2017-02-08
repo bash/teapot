@@ -50,7 +50,8 @@ pub fn is_whitespace(byte: u8) -> bool {
 
 pub fn is_control(byte: u8) -> bool {
     match byte {
-        ASCII_CONTROL_LOWER_BOUND...ASCII_CONTROL_UPPER_BOUND | ASCII_DEL_CHAR => true,
-        _ => false
+        ASCII_CONTROL_LOWER_BOUND...ASCII_CONTROL_UPPER_BOUND |
+        ASCII_DEL_CHAR => true,
+        _ => false,
     }
 }

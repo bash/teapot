@@ -13,14 +13,14 @@ enum ParseState {
     Name,
     BeforeLine,
     BeforeValue,
-    Value
+    Value,
 }
 
 #[derive(Debug)]
 pub enum ParseError {
     UnexpectedCharacterError(u8),
     LineParseError(LinesError),
-    FromUtf8Error(FromUtf8Error)
+    FromUtf8Error(FromUtf8Error),
 }
 
 type ParseResult = Result<ParseState, ParseError>;
@@ -42,7 +42,7 @@ pub struct Parser {
     state: ParseState,
     headers: Vec<RawHeader>,
     name: Vec<u8>,
-    value: Vec<u8>
+    value: Vec<u8>,
 }
 
 impl Parser {
@@ -51,7 +51,7 @@ impl Parser {
             state: ParseState::BeforeName,
             headers: vec![],
             name: vec![],
-            value: vec![]
+            value: vec![],
         }
     }
 
@@ -67,7 +67,7 @@ impl Parser {
             for byte in line {
                 match self.process(byte) {
                     Ok(state) => self.state = state,
-                    Err(err) => return Err(err)
+                    Err(err) => return Err(err),
                 }
             }
 
@@ -85,7 +85,7 @@ impl Parser {
             ParseState::Name => self.handle_name(byte),
             ParseState::BeforeValue => self.handle_before_value(byte),
             ParseState::Value => self.handle_value(byte),
-            ParseState::BeforeLine => self.handle_before_line(byte)
+            ParseState::BeforeLine => self.handle_before_line(byte),
         }
     }
 
@@ -114,7 +114,7 @@ impl Parser {
 
     fn handle_name(&mut self, byte: u8) -> ParseResult {
         if byte == ASCII_COLON {
-            return Ok(ParseState::BeforeValue)
+            return Ok(ParseState::BeforeValue);
         }
 
         self.consume_name(byte)
@@ -122,7 +122,7 @@ impl Parser {
 
     fn consume_name(&mut self, byte: u8) -> ParseResult {
         if !is_token(byte) {
-            return Err(ParseError::UnexpectedCharacterError(byte))
+            return Err(ParseError::UnexpectedCharacterError(byte));
         }
 
         self.name.push(byte);
@@ -133,7 +133,7 @@ impl Parser {
     fn handle_before_value(&mut self, byte: u8) -> ParseResult {
         match is_whitespace(byte) {
             true => Ok(ParseState::BeforeValue),
-            false => self.consume_value(byte)
+            false => self.consume_value(byte),
         }
     }
 
@@ -143,7 +143,7 @@ impl Parser {
 
     fn consume_value(&mut self, byte: u8) -> ParseResult {
         if is_control(byte) {
-            return Err(ParseError::UnexpectedCharacterError(byte))
+            return Err(ParseError::UnexpectedCharacterError(byte));
         }
 
         self.value.push(byte);
@@ -154,7 +154,7 @@ impl Parser {
     fn handle_before_line(&mut self, byte: u8) -> ParseResult {
         match is_whitespace(byte) {
             true => Ok(ParseState::BeforeValue),
-            false => self.handle_before_name(byte)
+            false => self.handle_before_name(byte),
         }
     }
 }
@@ -166,7 +166,8 @@ mod test {
 
     #[test]
     fn test_parse() {
-        let lines = "Host: example.com\r\nUser-Agent: curl/7.51.0\r\nAccept: */*".as_bytes().lines();
+        let lines =
+            "Host: example.com\r\nUser-Agent: curl/7.51.0\r\nAccept: */*".as_bytes().lines();
         let mut parser = Parser::new();
         let result = parser.parse(lines);
 
