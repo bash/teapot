@@ -2,7 +2,7 @@ use std;
 use std::io::Read;
 use std::string::FromUtf8Error;
 
-use super::super::lines::{ReadLines, LinesError};
+use super::super::lines::{Lines, LinesError};
 use super::super::headers::{Headers, RawHeader};
 use super::{is_token, is_whitespace, is_control, ASCII_SPACE, ASCII_COLON};
 
@@ -86,12 +86,17 @@ impl From<FromUtf8Error> for ParseError {
 /// Parses message headers according to [`RFC2616 Section 4.2`]
 ///
 /// [`RFC2616 Section 4.2`]: https://tools.ietf.org/html/rfc2616#section-4.2
-pub fn parse_headers<R: Read>(input: R) -> Result<Headers, ParseError> {
+pub fn parse_headers<R: Read>(input: Lines<R>) -> Result<Headers, ParseError> {
     let mut state = State::new();
 
-    // TODO: use dedicated iterator that stops on \r\n\r\n instead of `Lines`
-    for line in input.lines() {
-        for byte in line? {
+    for line in input {
+        let line = line?;
+
+        if line.len() == 0 {
+            break;
+        }
+
+        for byte in line {
             let (op, pos) = process(&state, byte)?;
 
             if pos == Pos::Name && state.pos == Pos::NewLine {
@@ -174,10 +179,11 @@ fn new_line(byte: u8) -> ParseResult {
 #[cfg(test)]
 mod test {
     use super::*;
+    use super::super::super::lines::ReadLines;
 
     #[test]
     fn test_parse() {
-        let raw = "Host: example.com\r\nUser-Agent: curl/7.51.0\r\nAccept: */*".as_bytes();
+        let raw = "Host: example.com\r\nUser-Agent: curl/7.51.0\r\nAccept: */*".as_bytes().lines();
         let headers = parse_headers(raw).unwrap();
 
         let host = headers.get_raw("host")[0];
@@ -195,7 +201,7 @@ mod test {
 
     #[test]
     fn test_continuation_parse() {
-        let raw = "X-Foo: Bar\r\n Qux\r\nX-Baz: Bar".as_bytes();
+        let raw = "X-Foo: Bar\r\n Qux\r\nX-Baz: Bar".as_bytes().lines();
         let headers = parse_headers(raw).unwrap();
 
         let foo = headers.get_raw("X-Foo")[0];

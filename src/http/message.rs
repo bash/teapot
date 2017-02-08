@@ -2,13 +2,20 @@ use std::io::Read;
 use std::convert::From;
 use std::string::FromUtf8Error;
 use super::lines::{ReadLines, LinesError};
-use super::headers::{Headers, RawHeader};
+use super::headers::{Headers, RawHeader, ParseError as HeaderParseError};
 
 #[derive(Debug)]
 pub enum ParseError {
     Hello,
     FromUtf8Error(FromUtf8Error),
     ReadError(::std::io::Error),
+    HeaderParseError(HeaderParseError)
+}
+
+impl From<HeaderParseError> for ParseError {
+    fn from(err: HeaderParseError) -> Self {
+        ParseError::HeaderParseError(err)
+    }
 }
 
 impl From<FromUtf8Error> for ParseError {
@@ -36,6 +43,10 @@ impl<'a> Message<'a> {
         &self.start_line
     }
 
+    pub fn headers(&self) -> &Headers {
+        &self.headers
+    }
+
     pub fn new<S: Into<String>>(start_line: S, headers: Headers, body: &'a Read) -> Self {
         Message {
             start_line: start_line.into(),
@@ -54,7 +65,9 @@ impl<'a> Message<'a> {
             try!(String::from_utf8(raw))
         };
 
-        Ok(Message::new(start_line, Headers::new(), buffer))
+        let headers = Headers::parse(buffer.lines())?;
+
+        Ok(Message::new(start_line, headers, buffer))
     }
 }
 
@@ -65,9 +78,24 @@ mod test {
 
     #[test]
     fn test_parse() {
-        let mut bytes = "HTTP/1.1\r\nX-Foo: Bar".as_bytes();
-        let message = Message::parse(&mut bytes).unwrap();
+        let mut bytes = "HTTP/1.1\r\nX-Foo: Bar\r\n\r\nFoo".as_bytes();
 
-        assert_eq!("HTTP/1.1", message.start_line());
+        {
+            let message = Message::parse(&mut bytes).unwrap();
+
+            assert_eq!("HTTP/1.1", message.start_line());
+
+            let foo = message.headers().get_raw("x-foo")[0];
+            assert_eq!("X-Foo", foo.name());
+            assert_eq!("Bar", foo.value());
+
+            assert_eq!(1, message.headers().len_raw());
+        }
+
+        {
+            let mut body = String::new();
+            bytes.read_to_string(&mut body);
+            assert_eq!("Foo", body);
+        }
     }
 }

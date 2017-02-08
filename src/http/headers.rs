@@ -1,7 +1,8 @@
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet};
 use std::fmt;
 use std::io::Read;
 use super::parse::headers::parse_headers;
+use super::lines::Lines;
 pub use super::parse::headers::ParseError;
 
 /// # Examples
@@ -124,7 +125,7 @@ impl Headers {
         Headers { headers: BTreeSet::new() }
     }
 
-    pub fn parse<R: Read>(input: R) -> Result<Self, ParseError> {
+    pub fn parse<R: Read>(input: Lines<R>) -> Result<Self, ParseError> {
         parse_headers(input)
     }
 
@@ -145,11 +146,14 @@ impl Headers {
     }
 
     pub fn get_raw(&self, name: &str) -> Vec<&RawHeader> {
-        // TODO: ask @SirRade for an opinion on this
         self.headers
             .iter()
             .filter(|ref header| header.name.to_lowercase() == *name.to_lowercase())
             .collect()
+    }
+
+    pub fn len_raw(&self) -> usize {
+        self.headers.len()
     }
 }
 
