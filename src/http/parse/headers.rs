@@ -83,7 +83,6 @@ impl From<FromUtf8Error> for ParseError {
     }
 }
 
-///
 /// Parses message headers according to [`RFC2616 Section 4.2`]
 ///
 /// [`RFC2616 Section 4.2`]: https://tools.ietf.org/html/rfc2616#section-4.2
@@ -162,6 +161,11 @@ fn consume_value(byte: u8) -> ParseResult {
 
 fn new_line(byte: u8) -> ParseResult {
     match is_whitespace(byte) {
+        /// According to [`RFC2616 Section 4.2`]:
+        /// "... Any LWS that occurs between field-content MAY be replaced
+        /// with a single SP before interpreting the field value ..."
+        ///
+        /// [`RFC2616 Section 4.2`]: https://tools.ietf.org/html/rfc2616#section-4.2
         true => Ok((Op::AppendValue(ASCII_SPACE), Pos::BeforeValue)),
         false => before_name(byte),
     }
