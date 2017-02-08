@@ -180,7 +180,7 @@ mod test {
         let raw = "Host: example.com\r\nUser-Agent: curl/7.51.0\r\nAccept: */*".as_bytes();
         let headers = parse_headers(raw).unwrap();
 
-        let host = headers.get_craw("host")[0];
+        let host = headers.get_raw("host")[0];
         assert_eq!("Host", host.name());
         assert_eq!("example.com", host.value());
 
@@ -191,5 +191,19 @@ mod test {
         let accept = headers.get_raw("accept")[0];
         assert_eq!("Accept", accept.name());
         assert_eq!("*/*", accept.value());
+    }
+
+    #[test]
+    fn test_continuation_parse() {
+        let raw = "X-Foo: Bar\r\n Qux\r\nX-Baz: Bar".as_bytes();
+        let headers = parse_headers(raw).unwrap();
+
+        let foo = headers.get_raw("X-Foo")[0];
+        assert_eq!("X-Foo", foo.name());
+        assert_eq!("Bar,Qux", foo.value());
+
+        let baz = headers.get_raw("X-baz")[0];
+        assert_eq!("X-Baz", baz.name());
+        assert_eq!("Bar", baz.value());
     }
 }
