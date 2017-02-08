@@ -1,5 +1,9 @@
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet};
 use std::fmt;
+use std::io::Read;
+use super::parse::headers::parse_headers;
+use super::lines::Lines;
+pub use super::parse::headers::ParseError;
 
 /// # Examples
 ///
@@ -18,10 +22,6 @@ use std::fmt;
 /// }
 ///
 /// impl TypedHeader for UserAgentHeader {
-///     fn name() -> &'static str {
-///         "user-agent"
-///     }
-///
 ///     fn canonical_name() -> &'static str {
 ///        "User-Agent"
 ///     }
@@ -40,16 +40,11 @@ use std::fmt;
 /// }
 /// ```
 pub trait TypedHeader: Eq + Sized {
-    /// This is the name of the header in lower case.
-    /// It is used in [`Headers`] to look up the raw header(s).
-    ///
-    /// [`Headers`]: struct.Headers.html#method.get
-    fn name() -> &'static str;
-
     /// This is the name of the header in its canonical form.
-    /// Used by [`to_raw`] as the header name.
+    /// Used by [`to_raw`] and [`get_raw`] as the header's name.
     ///
     /// [`to_raw`]: trait.TypedHeader.html#method.to_raw
+    /// [`get`]: struct.Headers.html#method.get
     fn canonical_name() -> &'static str;
 
     /// Converts a list of raw values to a `TypedHeader`
@@ -79,7 +74,7 @@ pub trait TypedHeader: Eq + Sized {
     }
 }
 
-#[derive(PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Eq, PartialOrd, Ord, Debug)]
 pub struct RawHeader {
     name: String,
     value: String,
@@ -93,22 +88,19 @@ impl RawHeader {
         }
     }
 
-    pub fn parse<S: Into<String>>(raw: S) -> Self {
-        let raw = raw.into();
-
-        RawHeader::new("foo", "bar")
-    }
-
-    pub fn lower_name<'a>(&'a self) -> String {
-        self.name.to_lowercase()
-    }
-
     pub fn name(&self) -> &str {
         &self.name
     }
 
     pub fn value(&self) -> &str {
         &self.value
+    }
+}
+
+impl PartialEq<RawHeader> for RawHeader {
+    fn eq(&self, other: &RawHeader) -> bool {
+        self.name.to_lowercase() == other.name.to_lowercase()
+            && self.value == other.value
     }
 }
 
@@ -122,6 +114,7 @@ impl RawHeader {
 ///
 /// assert_eq!(Dnt::Unspecified, dnt.value());
 /// ```
+#[derive(Debug)]
 pub struct Headers {
     headers: BTreeSet<RawHeader>,
 }
@@ -130,6 +123,10 @@ pub struct Headers {
 impl Headers {
     pub fn new() -> Self {
         Headers { headers: BTreeSet::new() }
+    }
+
+    pub fn parse<R: Read>(input: Lines<R>) -> Result<Self, ParseError> {
+        parse_headers(input)
     }
 
     pub fn append<H: TypedHeader>(&mut self, header: H) {
@@ -143,17 +140,20 @@ impl Headers {
     }
 
     pub fn get<H: TypedHeader>(&self) -> Option<H> {
-        let raw = self.get_raw(H::name());
+        let raw = self.get_raw(H::canonical_name());
 
         H::parse(raw.as_slice())
     }
 
     pub fn get_raw(&self, name: &str) -> Vec<&RawHeader> {
-        // TODO: ask @SirRade for an opinion on this
         self.headers
             .iter()
-            .filter(|ref header| header.lower_name() == *name)
+            .filter(|ref header| header.name.to_lowercase() == *name.to_lowercase())
             .collect()
+    }
+
+    pub fn len_raw(&self) -> usize {
+        self.headers.len()
     }
 }
 
@@ -192,10 +192,6 @@ impl DntHeader {
 }
 
 impl TypedHeader for DntHeader {
-    fn name() -> &'static str {
-        "dnt"
-    }
-
     fn canonical_name() -> &'static str {
         "DNT"
     }
@@ -231,10 +227,6 @@ impl UserAgentHeader {
 }
 
 impl TypedHeader for UserAgentHeader {
-    fn name() -> &'static str {
-        "user-agent"
-    }
-
     fn canonical_name() -> &'static str {
         "User-Agent"
     }
