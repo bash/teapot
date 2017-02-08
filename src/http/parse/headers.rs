@@ -1,19 +1,27 @@
 use std::io::Read;
 use std::string::FromUtf8Error;
+use std::mem::replace;
 
 use super::super::lines::{Lines, LinesError};
 use super::super::headers::{Headers, RawHeader};
 use super::{is_token, is_whitespace, is_control};
 
 const ASCII_COLON: u8 = 58;
+const ASCII_COMMA: u8 = 44;
 
-#[derive(Debug)]
-enum ParseState {
+#[derive(Debug, PartialEq, Eq)]
+enum State {
     BeforeName,
     Name,
-    BeforeLine,
+    NewLine,
     BeforeValue,
     Value,
+}
+
+enum Op {
+    None,
+    AppendName(u8),
+    AppendValue(u8)
 }
 
 #[derive(Debug)]
@@ -23,7 +31,7 @@ pub enum ParseError {
     FromUtf8Error(FromUtf8Error),
 }
 
-type ParseResult = Result<ParseState, ParseError>;
+type ParseResult = Result<(Op, State), ParseError>;
 
 impl From<LinesError> for ParseError {
     fn from(err: LinesError) -> Self {
@@ -39,7 +47,7 @@ impl From<FromUtf8Error> for ParseError {
 
 #[derive(Debug)]
 pub struct Parser {
-    state: ParseState,
+    state: State,
     headers: Headers,
     name: Vec<u8>,
     value: Vec<u8>,
@@ -48,7 +56,7 @@ pub struct Parser {
 impl Parser {
     pub fn new() -> Self {
         Parser {
-            state: ParseState::BeforeName,
+            state: State::BeforeName,
             headers: Headers::new(),
             name: vec![],
             value: vec![],
@@ -60,30 +68,42 @@ impl Parser {
     ///
     /// [`RFC2616 Section 4.2`]: https://tools.ietf.org/html/rfc2616#section-4.2
     // TODO: use dedicated iterator that stops on \r\n\r\n instead of `Lines`
-    pub fn parse<T: Read>(&mut self, input: Lines<T>) -> Result<(), ParseError> {
+    pub fn parse<T: Read>(&mut self, input: Lines<T>) -> Result<Headers, ParseError> {
         for line in input {
             for byte in line? {
-                match self.process(byte) {
-                    Ok(state) => self.state = state,
-                    Err(err) => return Err(err),
+                let (op, state) = self.process(byte)?;
+
+                if state == State::Name && self.state == State::NewLine {
+                    self.commit()?;
                 }
+
+                self.state = state;
+                self.update(op);
             }
 
-            self.state = ParseState::BeforeLine;
+            self.state = State::NewLine;
         }
 
         self.commit()?;
 
-        Ok(())
+        Ok(replace(&mut self.headers, Headers::new()))
     }
 
-    fn process(&mut self, byte: u8) -> ParseResult {
+    fn process(&self, byte: u8) -> ParseResult {
         match self.state {
-            ParseState::BeforeName => self.handle_before_name(byte),
-            ParseState::Name => self.handle_name(byte),
-            ParseState::BeforeValue => self.handle_before_value(byte),
-            ParseState::Value => self.handle_value(byte),
-            ParseState::BeforeLine => self.handle_before_line(byte),
+            State::BeforeName => self.before_name(byte),
+            State::Name => self.name(byte),
+            State::BeforeValue => self.before_value(byte),
+            State::Value => self.value(byte),
+            State::NewLine => self.new_line(byte),
+        }
+    }
+
+    fn update(&mut self, op: Op) {
+        match op {
+            Op::AppendName(byte) => self.name.push(byte),
+            Op::AppendValue(byte) => self.value.push(byte),
+            Op::None => {},
         }
     }
 
@@ -92,68 +112,57 @@ impl Parser {
             return Ok(());
         }
 
-        // TODO: do i really have to clone these?
-        let name = self.name.clone();
-        let value = self.value.clone();
+        let mut name = replace(&mut self.name, vec![]);
+        let mut value = replace(&mut self.value, vec![]);
 
-        self.headers
-            .append_raw(RawHeader::new(String::from_utf8(name)?, String::from_utf8(value)?));
-
-        self.name = vec![];
-        self.value = vec![];
+        self.headers.append_raw(RawHeader::new(String::from_utf8(name)?, String::from_utf8(value)?));
 
         Ok(())
     }
 
-    fn handle_before_name(&mut self, byte: u8) -> ParseResult {
-        self.commit()?;
-
+    fn before_name(&self, byte: u8) -> ParseResult {
         self.consume_name(byte)
     }
 
-    fn handle_name(&mut self, byte: u8) -> ParseResult {
+    fn name(&self, byte: u8) -> ParseResult {
         if byte == ASCII_COLON {
-            return Ok(ParseState::BeforeValue);
+            return Ok((Op::None, State::BeforeValue));
         }
 
         self.consume_name(byte)
     }
 
-    fn consume_name(&mut self, byte: u8) -> ParseResult {
+    fn consume_name(&self, byte: u8) -> ParseResult {
         if !is_token(byte) {
             return Err(ParseError::UnexpectedCharacterError(byte));
         }
 
-        self.name.push(byte);
-
-        Ok(ParseState::Name)
+        Ok((Op::AppendName(byte), State::Name))
     }
 
-    fn handle_before_value(&mut self, byte: u8) -> ParseResult {
+    fn before_value(&self, byte: u8) -> ParseResult {
         match is_whitespace(byte) {
-            true => Ok(ParseState::BeforeValue),
+            true => Ok((Op::None, State::BeforeValue)),
             false => self.consume_value(byte),
         }
     }
 
-    fn handle_value(&mut self, byte: u8) -> ParseResult {
+    fn value(&self, byte: u8) -> ParseResult {
         self.consume_value(byte)
     }
 
-    fn consume_value(&mut self, byte: u8) -> ParseResult {
+    fn consume_value(&self, byte: u8) -> ParseResult {
         if is_control(byte) {
             return Err(ParseError::UnexpectedCharacterError(byte));
         }
 
-        self.value.push(byte);
-
-        Ok(ParseState::Value)
+        Ok((Op::AppendValue(byte), State::Value))
     }
 
-    fn handle_before_line(&mut self, byte: u8) -> ParseResult {
+    fn new_line(&self, byte: u8) -> ParseResult {
         match is_whitespace(byte) {
-            true => Ok(ParseState::BeforeValue),
-            false => self.handle_before_name(byte),
+            true => Ok((Op::AppendValue(ASCII_COMMA), State::BeforeValue)),
+            false => self.before_name(byte),
         }
     }
 }
@@ -165,12 +174,21 @@ mod test {
 
     #[test]
     fn test_parse() {
-        let lines =
-            "Host: example.com\r\nUser-Agent: curl/7.51.0\r\nAccept: */*".as_bytes().lines();
-        let mut parser = Parser::new();
-        let result = parser.parse(lines);
+        let lines = b"Host: example.com\r\nUser-Agent: curl/7.51.0\r\nAccept: */*".lines();
 
-        println!("{:?}", parser);
-        println!("{:?}", result);
+        let mut parser = Parser::new();
+        let headers = parser.parse(lines).unwrap();
+
+        let host = headers.get_raw("host")[0];
+        assert_eq!("Host", host.name());
+        assert_eq!("example.com", host.value());
+
+        let ua = headers.get_raw("user-agent")[0];
+        assert_eq!("User-Agent", ua.name());
+        assert_eq!("curl/7.51.0", ua.value());
+
+        let accept = headers.get_raw("accept")[0];
+        assert_eq!("Accept", accept.name());
+        assert_eq!("*/*", accept.value());
     }
 }
