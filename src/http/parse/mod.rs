@@ -3,15 +3,17 @@ pub mod headers;
 use std::ascii::AsciiExt;
 
 /// Lower bound for ascii control characters
-const ASCII_CONTROL_LOWER_BOUND: u8 = 0;
+pub const ASCII_CONTROL_LOWER_BOUND: u8 = 0;
 /// Upper bound for ascii control characters
-const ASCII_CONTROL_UPPER_BOUND: u8 = 31;
+pub const ASCII_CONTROL_UPPER_BOUND: u8 = 31;
 /// Ascii del character
-const ASCII_DEL_CHAR: u8 = 127;
-/// Ascii tab character (\t)
-const ASCII_TAB: u8 = 9;
-/// Ascii space character
-const ASCII_SPACE: u8 = 32;
+pub const ASCII_DEL_CHAR: u8 = 127;
+/// Ascii tab character "\t"
+pub const ASCII_TAB: u8 = 9;
+/// Ascii space character " "
+pub const ASCII_SPACE: u8 = 32;
+/// Ascii colon character ":"
+pub const ASCII_COLON: u8 = 58;
 
 /// Checks if a given byte is a "token" character as defined in [`RFC2616 Section 2.2`]:
 ///

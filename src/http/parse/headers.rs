@@ -4,10 +4,7 @@ use std::string::FromUtf8Error;
 
 use super::super::lines::{ReadLines, LinesError};
 use super::super::headers::{Headers, RawHeader};
-use super::{is_token, is_whitespace, is_control};
-
-const ASCII_COLON: u8 = 58;
-const ASCII_COMMA: u8 = 44;
+use super::{is_token, is_whitespace, is_control, ASCII_SPACE, ASCII_COLON};
 
 #[derive(Debug, PartialEq, Eq)]
 enum Pos {
@@ -165,7 +162,7 @@ fn consume_value(byte: u8) -> ParseResult {
 
 fn new_line(byte: u8) -> ParseResult {
     match is_whitespace(byte) {
-        true => Ok((Op::AppendValue(ASCII_COMMA), Pos::BeforeValue)),
+        true => Ok((Op::AppendValue(ASCII_SPACE), Pos::BeforeValue)),
         false => before_name(byte),
     }
 }
@@ -200,7 +197,7 @@ mod test {
 
         let foo = headers.get_raw("X-Foo")[0];
         assert_eq!("X-Foo", foo.name());
-        assert_eq!("Bar,Qux", foo.value());
+        assert_eq!("Bar Qux", foo.value());
 
         let baz = headers.get_raw("X-baz")[0];
         assert_eq!("X-Baz", baz.name());
