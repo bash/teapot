@@ -174,7 +174,6 @@ fn new_line(byte: u8) -> ParseResult {
 #[cfg(test)]
 mod test {
     use super::*;
-    use super::super::super::lines::ReadLines;
 
     #[test]
     fn test_parse() {
