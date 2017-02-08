@@ -21,10 +21,6 @@ pub use super::parse::headers::ParseError;
 /// }
 ///
 /// impl TypedHeader for UserAgentHeader {
-///     fn name() -> &'static str {
-///         "user-agent"
-///     }
-///
 ///     fn canonical_name() -> &'static str {
 ///        "User-Agent"
 ///     }
@@ -43,16 +39,11 @@ pub use super::parse::headers::ParseError;
 /// }
 /// ```
 pub trait TypedHeader: Eq + Sized {
-    /// This is the name of the header in lower case.
-    /// It is used in [`Headers`] to look up the raw header(s).
-    ///
-    /// [`Headers`]: struct.Headers.html#method.get
-    fn name() -> &'static str;
-
     /// This is the name of the header in its canonical form.
-    /// Used by [`to_raw`] as the header name.
+    /// Used by [`to_raw`] and [`get_raw`] as the header's name.
     ///
     /// [`to_raw`]: trait.TypedHeader.html#method.to_raw
+    /// [`get`]: struct.Headers.html#method.get
     fn canonical_name() -> &'static str;
 
     /// Converts a list of raw values to a `TypedHeader`
@@ -82,7 +73,7 @@ pub trait TypedHeader: Eq + Sized {
     }
 }
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Debug)]
+#[derive(Eq, PartialOrd, Ord, Debug)]
 pub struct RawHeader {
     name: String,
     value: String,
@@ -96,16 +87,19 @@ impl RawHeader {
         }
     }
 
-    pub fn lower_name<'a>(&'a self) -> String {
-        self.name.to_lowercase()
-    }
-
     pub fn name(&self) -> &str {
         &self.name
     }
 
     pub fn value(&self) -> &str {
         &self.value
+    }
+}
+
+impl PartialEq<RawHeader> for RawHeader {
+    fn eq(&self, other: &RawHeader) -> bool {
+        self.name.to_lowercase() == other.name.to_lowercase()
+            && self.value == other.value
     }
 }
 
@@ -145,7 +139,7 @@ impl Headers {
     }
 
     pub fn get<H: TypedHeader>(&self) -> Option<H> {
-        let raw = self.get_raw(H::name());
+        let raw = self.get_raw(H::canonical_name());
 
         H::parse(raw.as_slice())
     }
@@ -154,7 +148,7 @@ impl Headers {
         // TODO: ask @SirRade for an opinion on this
         self.headers
             .iter()
-            .filter(|ref header| header.lower_name() == *name)
+            .filter(|ref header| header.name.to_lowercase() == *name.to_lowercase())
             .collect()
     }
 }
@@ -194,10 +188,6 @@ impl DntHeader {
 }
 
 impl TypedHeader for DntHeader {
-    fn name() -> &'static str {
-        "dnt"
-    }
-
     fn canonical_name() -> &'static str {
         "DNT"
     }
@@ -233,10 +223,6 @@ impl UserAgentHeader {
 }
 
 impl TypedHeader for UserAgentHeader {
-    fn name() -> &'static str {
-        "user-agent"
-    }
-
     fn canonical_name() -> &'static str {
         "User-Agent"
     }
