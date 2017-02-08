@@ -85,8 +85,7 @@ impl Parser {
             ParseState::Name => self.handle_name(byte),
             ParseState::BeforeValue => self.handle_before_value(byte),
             ParseState::Value => self.handle_value(byte),
-            ParseState::BeforeLine => self.handle_before_line(byte),
-            _ => Err(ParseError::UnexpectedCharacterError(byte))
+            ParseState::BeforeLine => self.handle_before_line(byte)
         }
     }
 
